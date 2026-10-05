@@ -1,0 +1,273 @@
+import { IngestionRunLog } from '../domain/entities/IngestionRunLog.js';
+import type { RawInstitutionalMessage } from '../domain/entities/RawInstitutionalMessage.js';
+import type { IngestionCursor } from '../domain/value-objects/IngestionCursor.js';
+import type { IdempotencyPolicy } from '../domain/services/IdempotencyPolicy.js';
+import type { DeduplicationPolicy } from '../domain/services/DeduplicationPolicy.js';
+import type { QuarantineIncidentPolicy } from '../domain/services/QuarantineIncidentPolicy.js';
+import type { MailboxIngestionPort, UntranslatableMessage } from '../domain/ports/out/MailboxIngestionPort.js';
+import type { ProcessedMessageRegistryPort } from '../domain/ports/out/ProcessedMessageRegistryPort.js';
+import type { ConsolidatedMessageRegistryPort } from '../domain/ports/out/ConsolidatedMessageRegistryPort.js';
+import type { QuarantineRepositoryPort } from '../domain/ports/out/QuarantineRepositoryPort.js';
+import type { IngestionCursorRepositoryPort } from '../domain/ports/out/IngestionCursorRepositoryPort.js';
+import type { IngestionRunLogRepositoryPort } from '../domain/ports/out/IngestionRunLogRepositoryPort.js';
+import type { MessageFailureRepositoryPort } from '../domain/ports/out/MessageFailureRepositoryPort.js';
+import type { ClockPort } from '../domain/ports/out/ClockPort.js';
+import type { IngestInstitutionalMessagesPort } from '../domain/ports/in/IngestInstitutionalMessagesPort.js';
+import type { MessageNormalizerPort } from '../domain/ports/out/MessageNormalizerPort.js';
+import type { DueDateExtractorPort } from '../domain/ports/out/DueDateExtractorPort.js';
+import type { ClassifyInstitutionalMessage } from '../../classification/application/ClassifyInstitutionalMessage.js';
+
+export interface IngestInstitutionalMessagesDependencies {
+  readonly mailbox: MailboxIngestionPort;
+  readonly registry: ProcessedMessageRegistryPort;
+  readonly consolidatedRegistry: ConsolidatedMessageRegistryPort;
+  readonly quarantine: QuarantineRepositoryPort;
+  readonly cursors: IngestionCursorRepositoryPort;
+  readonly logs: IngestionRunLogRepositoryPort;
+  readonly idempotency: IdempotencyPolicy;
+  readonly deduplication: DeduplicationPolicy;
+  readonly deduplicationWindowMs: number;
+  readonly quarantineIncidentPolicy: QuarantineIncidentPolicy;
+  readonly normalizer: MessageNormalizerPort;
+  readonly dueDateExtractor: DueDateExtractorPort;
+  /**
+   * Clasificacion completa (HU-06 + reglas de HU-09 + umbral de HU-10).
+   * Opcional: sin ella la ingesta consolida sin clasificar.
+   */
+  readonly classifyMessage?: ClassifyInstitutionalMessage;
+  /**
+   * Correccion del bug 2: tras `maxAttempts` ciclos fallidos sobre el mismo
+   * mensaje, se deriva a cuarentena (HU-04) y el cursor lo deja atras. Sin
+   * esta politica, un mensaje que falla siempre bloquea el buzon para siempre.
+   * Opcional como `classifyMessage`; `main.ts` la cablea.
+   */
+  readonly poisonMessages?: {
+    readonly failures: MessageFailureRepositoryPort;
+    readonly maxAttempts: number;
+  };
+  readonly clock: ClockPort;
+  readonly batchSize: number;
+}
+
+/**
+ * Caso de uso CU-01, pasos 1, 2 y 5, mas el flujo alternativo A.
+ *
+ * Orquesta la ingesta sin conocer IMAP ni MongoDB: recibe puertos y decide con
+ * politicas de dominio. Esa ignorancia es lo que permite ejecutarlo completo
+ * contra dobles en memoria mientras la Universidad habilita el buzon real.
+ */
+export class IngestInstitutionalMessages implements IngestInstitutionalMessagesPort {
+  constructor(private readonly deps: IngestInstitutionalMessagesDependencies) {
+    if (!Number.isInteger(deps.batchSize) || deps.batchSize <= 0) {
+      throw new RangeError(`El tamano de lote debe ser un entero positivo, se recibio ${deps.batchSize}`);
+    }
+    const maxAttempts = deps.poisonMessages?.maxAttempts;
+    if (maxAttempts !== undefined && (!Number.isInteger(maxAttempts) || maxAttempts <= 0)) {
+      throw new RangeError(`El maximo de intentos por mensaje debe ser un entero positivo, se recibio ${maxAttempts}`);
+    }
+  }
+
+  async execute(): Promise<IngestionRunLog> {
+    const { mailbox, cursors, logs, clock, batchSize, quarantine, quarantineIncidentPolicy } = this.deps;
+    const log = new IngestionRunLog(clock.now());
+
+    // Suscribir el callback de mensajes no traducibles para que la ejecucion
+    // en curso los derive a cuarentena (HU-04) sin violar la regla de capas:
+    // la suscripcion es orquestacion y ocurre aqui, en la composicion/
+    // ejecucion del caso de uso. El callback es sincrono, asi que solo
+    // acumula; el guardado async ocurre despues de fetchUnprocessed().
+    const untranslatable: UntranslatableMessage[] = [];
+    if (mailbox.setOnUntranslatable) {
+      mailbox.setOnUntranslatable((message) => {
+        log.recordQuarantined();
+        untranslatable.push(message);
+      });
+    }
+
+    let cursor = await cursors.load();
+    const batch = await mailbox.fetchUnprocessed(cursor, batchSize);
+
+    for (const message of untranslatable) {
+      await quarantine.save({
+        mailboxUid: message.mailboxUid,
+        cause: message.cause,
+        rawSource: message.rawSource,
+        quarantinedAt: clock.now()
+      });
+      // Nota: el UID en cuarentena no avanza el cursor aqui. Puede volver a
+      // aparecer en ejecuciones posteriores hasta que exista un punto de
+      // entrada para reprocesarlo (criterio 5, diferido — ver README).
+    }
+
+    for (const message of this.inAscendingUidOrder(batch)) {
+      log.recordRead();
+      try {
+        cursor = await this.handle(message, cursor, log);
+      } catch (error) {
+        log.recordIncident(message.messageId.toString(), this.describe(error), clock.now());
+        if (await this.quarantineIfExhausted(message, error, log)) {
+          // Bug 2: agotado el umbral, el mensaje queda en cuarentena y el
+          // cursor avanza sobre el para no bloquear el resto del buzon.
+          cursor = cursor.advanceTo(message.mailboxUid, clock.now());
+          continue;
+        }
+        // Se conserva el punto de lectura del ultimo mensaje confirmado, de modo
+        // que la siguiente ejecucion no reprocesa lo confirmado ni se salta este.
+        await this.persist(cursor, log);
+        throw error;
+      }
+    }
+
+    log.finish(clock.now());
+    if (quarantineIncidentPolicy.exceedsThreshold(log)) {
+      log.markPriorityReview();
+    }
+    await this.persist(cursor, log);
+    await logs.save(log);
+    return log;
+  }
+
+  private async handle(
+    message: RawInstitutionalMessage,
+    cursor: IngestionCursor,
+    log: IngestionRunLog
+  ): Promise<IngestionCursor> {
+    const { registry, idempotency, clock } = this.deps;
+    const decision = await idempotency.decide(message);
+
+    if (decision.kind === 'discard-duplicate') {
+      log.recordDuplicate();
+      // El duplicado tambien confirma lectura: sin este avance el cursor se
+      // quedaria anclado y el lote se releeria de forma indefinida.
+      return cursor.advanceTo(message.mailboxUid, clock.now());
+    }
+
+    await this.consolidate(message);
+    await registry.markAsProcessed(message.messageId, message.mailboxUid, clock.now());
+    log.recordProcessed();
+    return cursor.advanceTo(message.mailboxUid, clock.now());
+  }
+
+  /**
+   * HU-03 (RF-05): un mensaje que ya paso el filtro de idempotencia por
+   * Message-ID puede seguir siendo un reenvio semantico (mismo
+   * remitente+asunto dentro de la ventana). Aqui se decide si genera un
+   * documento nuevo, se consolida en el existente, o se actualiza su cuerpo.
+   */
+  private async consolidate(message: RawInstitutionalMessage): Promise<void> {
+    const { normalizer, deduplication, deduplicationWindowMs, consolidatedRegistry, dueDateExtractor, classifyMessage } =
+      this.deps;
+    const normalized = normalizer.normalize(message);
+    const decision = await deduplication.decide(normalized, deduplicationWindowMs);
+    // HU-08: se interpreta siempre sobre el cuerpo del mensaje entrante, no
+    // sobre el del grupo existente — un reenvio puede traer una fecha
+    // corregida o el enlace de postulacion que el aviso original omitio.
+    const { dueDate, applicationLink } = dueDateExtractor.extract(normalized);
+
+    // Politica de reenvios: se clasifica siempre, porque este mensaje pasa a
+    // ser el `representativeMessageId` del grupo y el feed (HU-10) lee el
+    // estado de publicacion de ese mensaje. Con el representativo anterior,
+    // `ClassifyInstitutionalMessage` solo alerta o notifica si el estado cambia.
+    // Un fallo del clasificador termina en su cola de reintento sin
+    // interrumpir el lote.
+    const previousMessageId = decision.kind === 'new' ? null : (decision.existing.representativeMessageId ?? null);
+    await classifyMessage?.execute(normalized, previousMessageId);
+
+    if (decision.kind === 'new') {
+      await consolidatedRegistry.save({
+        sender: normalized.sender,
+        subject: normalized.subject,
+        body: normalized.body,
+        representativeMessageId: normalized.messageId.toString(),
+        firstSentAt: normalized.sentAt,
+        lastSentAt: normalized.sentAt,
+        resendCount: 0,
+        dueDate,
+        applicationLink,
+        withdrawnAt: null
+      });
+      return;
+    }
+
+    const { existing } = decision;
+    await consolidatedRegistry.save({
+      sender: existing.sender,
+      subject: existing.subject,
+      body: decision.kind === 'update-body' ? normalized.body : existing.body,
+      representativeMessageId: normalized.messageId.toString(),
+      firstSentAt: existing.firstSentAt,
+      lastSentAt: normalized.sentAt,
+      resendCount: existing.resendCount + 1,
+      dueDate: decision.kind === 'update-body' ? dueDate : existing.dueDate,
+      applicationLink: decision.kind === 'update-body' ? applicationLink : existing.applicationLink,
+      // HU-50: un reenvio no resucita automaticamente una convocatoria que un
+      // administrador retiro — eso deshacia su decision en silencio.
+      withdrawnAt: existing.withdrawnAt
+    });
+  }
+
+  /**
+   * Registra el fallo del ciclo y, si el mensaje alcanzo `maxAttempts`, lo
+   * guarda en cuarentena. Si el propio registro del fallo falla (por ejemplo,
+   * Mongo caido), no se pone nada en cuarentena: una caida de infraestructura
+   * no debe mandar mensajes sanos a cuarentena. Se devuelve `false` y el
+   * llamador propaga el error original, como antes de esta correccion.
+   */
+  private async quarantineIfExhausted(
+    message: RawInstitutionalMessage,
+    error: unknown,
+    log: IngestionRunLog
+  ): Promise<boolean> {
+    const { poisonMessages, quarantine, clock } = this.deps;
+    if (!poisonMessages) return false;
+
+    const cause = this.describe(error);
+    let attempts: number;
+    try {
+      attempts = await poisonMessages.failures.recordFailure(message.mailboxUid, cause, clock.now());
+    } catch {
+      return false;
+    }
+    if (attempts < poisonMessages.maxAttempts) return false;
+
+    await quarantine.save({
+      mailboxUid: message.mailboxUid,
+      cause: `Fallo en ${attempts} ciclos consecutivos de ingesta: ${cause}`,
+      rawSource: this.reconstructSource(message),
+      quarantinedAt: clock.now()
+    });
+    log.recordQuarantined();
+    return true;
+  }
+
+  /**
+   * `RawInstitutionalMessage` ya no conserva el MIME original del buzon; se
+   * reconstruyen los encabezados y el cuerpo crudo que si conserva, suficiente
+   * para diagnosticar el fallo sin depender de que el buzon aun lo tenga.
+   */
+  private reconstructSource(message: RawInstitutionalMessage): string {
+    return [
+      `Message-ID: ${message.messageId.toString()}`,
+      `From: ${message.sender}`,
+      `Subject: ${message.subject}`,
+      `Date: ${message.receivedAt.toISOString()}`,
+      '',
+      message.rawBody
+    ].join('\r\n');
+  }
+
+  private async persist(cursor: IngestionCursor, log: IngestionRunLog): Promise<void> {
+    await this.deps.cursors.save(cursor);
+    if (log.finishedAt === null) {
+      await this.deps.logs.save(log);
+    }
+  }
+
+  private inAscendingUidOrder(batch: readonly RawInstitutionalMessage[]): RawInstitutionalMessage[] {
+    return [...batch].sort((a, b) => a.mailboxUid - b.mailboxUid);
+  }
+
+  private describe(error: unknown): string {
+    return error instanceof Error ? error.message : String(error);
+  }
+}
