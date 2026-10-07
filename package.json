@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "tsc -p config/tsconfig.json",
+    "postbuild": "node -e \"require('fs').cpSync('config','dist/config',{recursive:true})\"",
     "typecheck": "tsc -p config/tsconfig.json --noEmit",
     "test": "vitest run --config config/vitest.config.ts",
     "test:coverage": "vitest run --config config/vitest.config.ts --coverage",
