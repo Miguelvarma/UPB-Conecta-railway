@@ -63,6 +63,17 @@ export class MongoIdentityProviderAdapter implements IdentityProviderPort {
     return { ...found.profile, email: found.profile.email.toLowerCase() };
   }
 
+  /** Perfil de una cuenta sin verificar contrasena (para otros contextos, p. ej. mensajeria). */
+  async findProfile(username: string): Promise<IdentityProfile | null> {
+    const found = await this.collection.findOne({ _id: normalizeUsername(username) }, { projection: { profile: 1 } });
+    return found ? { ...found.profile, email: found.profile.email.toLowerCase() } : null;
+  }
+
+  async listProfiles(): Promise<readonly IdentityProfile[]> {
+    const docs = await this.collection.find({}, { projection: { profile: 1 } }).toArray();
+    return docs.map((doc) => ({ ...doc.profile, email: doc.profile.email.toLowerCase() }));
+  }
+
   /** Crea la cuenta o reemplaza contrasena y perfil si ya existia. */
   async register(account: IdentityAccount): Promise<void> {
     const now = new Date();

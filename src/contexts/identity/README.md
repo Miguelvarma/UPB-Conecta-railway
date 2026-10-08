@@ -63,6 +63,12 @@ Desde HU-30, el foro también necesita los datos del directorio en cada login. `
 - Crear otra cuenta: `npm run build && npm run user:create -- --email juan.perez@upb.edu.co --password 'Clave123!' --name 'Juan Pérez' --program 'Ingeniería de Sistemas' --semester 4 --student-id 2024-0100`. Para un profesor: `--role professor` y sin `--semester`. Con `--role` sobre una cuenta existente, el cambio de rol queda auditado (`ChangeAccountRole`). En Railway: `railway run npm run user:create -- ...`.
 - `POST /auth/login` devuelve `role` (`student`, `professor` o `content-admin`), leído fresco de `AccountRoleRepositoryPort` en cada login; sin registro, `student`.
 
+## Sesión por HTTP
+
+- `POST /auth/refresh` `{ refreshToken }` → `{ ok, session }` con un par nuevo (rotación: el refresh token usado no sirve otra vez).
+- `POST /auth/logout` `{ refreshToken }` → revoca la cadena; el access token deja de servir de inmediato.
+- `requireSession` (`infrastructure/http/requireSession.ts`) protege los endpoints autenticados con `Authorization: Bearer <accessToken>`. Los rechazos de token se registran con `ConsoleSecurityAuditLog` (Deploy Logs de Railway).
+
 ## Variables de entorno soportadas
 
 - `IDENTITY_SEED_TEST_USERS`: `false` desactiva la creación de cuentas de prueba al arrancar.

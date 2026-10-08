@@ -17,6 +17,21 @@ import { MongoRefreshTokenRepository } from './contexts/identity/infrastructure/
 import { FanOutProfileSync } from './contexts/identity/infrastructure/adapters/out/profile-sync/FanOutProfileSync.js';
 import { ConsentStatusAdapter } from './contexts/identity/infrastructure/adapters/out/consent-status/ConsentStatusAdapter.js';
 import { createAuthRouter } from './contexts/identity/infrastructure/http/authRoutes.js';
+import { requireSession, sessionPrincipal } from './contexts/identity/infrastructure/http/requireSession.js';
+import { RefreshSession } from './contexts/identity/application/RefreshSession.js';
+import { LogoutSession } from './contexts/identity/application/LogoutSession.js';
+import { VerifyAccessToken } from './contexts/identity/application/VerifyAccessToken.js';
+import { ConsoleSecurityAuditLog } from './contexts/identity/infrastructure/adapters/out/console/ConsoleSecurityAuditLog.js';
+
+import { StartConversation } from './contexts/messaging/application/StartConversation.js';
+import { SendMessage } from './contexts/messaging/application/SendMessage.js';
+import { ListConversations } from './contexts/messaging/application/ListConversations.js';
+import { GetConversation } from './contexts/messaging/application/GetConversation.js';
+import { ListMessagingStudents } from './contexts/messaging/application/ListMessagingStudents.js';
+import { MongoConversationRepository } from './contexts/messaging/infrastructure/adapters/out/mongo/MongoConversationRepository.js';
+import { RandomMessagingIdGenerator } from './contexts/messaging/infrastructure/adapters/out/crypto/RandomMessagingIdGenerator.js';
+import { IdentityMessagingDirectoryAdapter } from './contexts/messaging/infrastructure/integration/IdentityMessagingDirectoryAdapter.js';
+import { createMessagingRouter } from './contexts/messaging/infrastructure/http/messagingRoutes.js';
 
 import { SyncStudentProfileFromDirectory } from './contexts/profile/application/SyncStudentProfileFromDirectory.js';
 import { readProfileConfig } from './contexts/profile/infrastructure/config/ProfileConfig.js';
@@ -60,6 +75,7 @@ async function bootstrap(): Promise<void> {
 
   await MongoRefreshTokenRepository.ensureIndexes(db);
   await MongoConsentRepository.ensureIndexes(db);
+  await MongoConversationRepository.ensureIndexes(db);
 
   const clock = new SystemClock();
   const sessionConfig = readSessionConfig();
@@ -96,9 +112,12 @@ async function bootstrap(): Promise<void> {
     })
   );
 
+  const signer = new JoseTokenSigningAdapter(sessionConfig, clock);
+  const refreshTokens = new MongoRefreshTokenRepository(db);
+  const securityAudit = new ConsoleSecurityAuditLog();
   const sessionTokenIssuer = new SessionTokenIssuer({
-    signer: new JoseTokenSigningAdapter(sessionConfig, clock),
-    refreshTokens: new MongoRefreshTokenRepository(db),
+    signer,
+    refreshTokens,
     clock,
     ids: new RandomSessionIdGenerator(),
     policy: sessionPolicy
@@ -129,7 +148,30 @@ async function bootstrap(): Promise<void> {
     accountRoles
   });
 
-  const app = createHttpServer([createAuthRouter(authenticateStudent)]);
+  const authRouter = createAuthRouter(authenticateStudent, {
+    refresh: new RefreshSession({ signer, refreshTokens, audit: securityAudit, clock, sessions: sessionTokenIssuer }),
+    logout: new LogoutSession({ signer, refreshTokens, audit: securityAudit, clock })
+  });
+  const sessionGuard = requireSession(new VerifyAccessToken({ signer, refreshTokens, audit: securityAudit, clock }));
+
+  // Mensajeria profesor <-> estudiante: conversaciones en Atlas, nombre y rol
+  // de cada participante leidos del directorio de `identity` en el servidor.
+  const conversations = new MongoConversationRepository(db);
+  const messagingDirectory = new IdentityMessagingDirectoryAdapter({ profiles: identityProvider, roles: accountRoles });
+  const messagingIds = new RandomMessagingIdGenerator();
+  const messagingRouter = createMessagingRouter(
+    {
+      listConversations: new ListConversations({ conversations }),
+      getConversation: new GetConversation({ conversations }),
+      startConversation: new StartConversation({ conversations, directory: messagingDirectory, clock, ids: messagingIds }),
+      sendMessage: new SendMessage({ conversations, clock, ids: messagingIds }),
+      listStudents: new ListMessagingStudents({ directory: messagingDirectory })
+    },
+    sessionGuard,
+    (res) => sessionPrincipal(res).subject
+  );
+
+  const app = createHttpServer([authRouter, messagingRouter]);
   const port = Number(process.env['PORT'] ?? process.env['HTTP_PORT'] ?? 3000);
   const server = app.listen(port, () => {
     console.log(`[http] escuchando en el puerto ${port}`);
