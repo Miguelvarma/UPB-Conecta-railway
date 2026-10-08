@@ -166,5 +166,10 @@ describe('HU-43 — autenticación institucional', () => {
     const asAdmin = await build().execute(credentials);
     if (!asAdmin.ok) throw new Error('Se esperaba autenticacion correcta');
     expect(asAdmin.role).toBe(Role.CONTENT_ADMIN);
+
+    await accountRoles.save({ subject: 'estudiante@upb.edu.co', role: Role.PROFESSOR, assignedAt: new Date(), assignedBy: 'coordinador@upb.edu.co' });
+    const asProfessor = await build().execute(credentials);
+    if (!asProfessor.ok) throw new Error('Se esperaba autenticacion correcta');
+    expect(asProfessor.role).toBe(Role.PROFESSOR);
   });
 });

@@ -9,7 +9,7 @@ import { readIdentityRateLimitConfig } from './contexts/identity/infrastructure/
 import { SessionPolicy } from './contexts/identity/domain/value-objects/SessionPolicy.js';
 import { MongoIdentityProviderAdapter } from './contexts/identity/infrastructure/adapters/out/mongo/MongoIdentityProviderAdapter.js';
 import { MongoAccountRoleRepository } from './contexts/identity/infrastructure/adapters/out/mongo/MongoAccountRoleRepository.js';
-import { seedStudentAccounts } from './contexts/identity/infrastructure/seed/StudentAccountSeeder.js';
+import { seedTestAccounts } from './contexts/identity/infrastructure/seed/TestAccountSeeder.js';
 import { InMemoryRateLimiter } from './contexts/identity/infrastructure/adapters/out/memory/InMemoryRateLimiter.js';
 import { JoseTokenSigningAdapter } from './contexts/identity/infrastructure/adapters/out/jwt/JoseTokenSigningAdapter.js';
 import { RandomSessionIdGenerator } from './contexts/identity/infrastructure/adapters/out/crypto/RandomSessionIdGenerator.js';
@@ -113,10 +113,10 @@ async function bootstrap(): Promise<void> {
   const identityProvider = new MongoIdentityProviderAdapter(db);
   const accountRoles = new MongoAccountRoleRepository(db);
 
-  // Cuentas de estudiante de prueba (ver `StudentAccountSeeder`). Solo crea
+  // Cuentas de prueba, estudiantes y profesores (ver `TestAccountSeeder`). Solo crea
   // las que falten; se desactiva con IDENTITY_SEED_TEST_USERS=false.
   if (process.env['IDENTITY_SEED_TEST_USERS'] !== 'false') {
-    const seeded = await seedStudentAccounts(identityProvider, accountRoles);
+    const seeded = await seedTestAccounts(identityProvider, accountRoles);
     console.log(`[http] cuentas de prueba: ${seeded.created.length} creadas, ${seeded.existing.length} ya existian`);
   }
 
