@@ -49,12 +49,21 @@ Desde HU-30, el foro también necesita los datos del directorio en cada login. `
 
 ### Infraestructura
 
-- `InMemoryIdentityProviderAdapter`: adaptación local para pruebas y entorno sin proveedor externo real.
+- `MongoIdentityProviderAdapter`: directorio de cuentas en MongoDB (colección `identity_users`, contraseña con `scrypt` + sal, nunca en claro). Es el que usa `http-server.ts` mientras no exista el directorio real.
+- `InMemoryIdentityProviderAdapter`: adaptación local para pruebas.
 - `RealIdentityProviderAdapter`: adaptador que falla explícitamente hasta que exista configuración real del directorio institucional.
 - `InMemoryRateLimiter`: limitador en memoria con ventana configurable por variables de entorno.
 - `ConsentStatusAdapter` (HU-44): implementa `ConsentStatusPort` llamando a `RequireConsentToProceed` del contexto `consent`.
 
+## Cuentas en MongoDB y rol en el login
+
+- Al arrancar, `http-server.ts` crea (si no existen) las cuentas de estudiante de prueba de `infrastructure/seed/StudentAccountSeeder.ts`, todas con contraseña `S3cr3t!UPB` y rol `student` en `identity_account_roles`. Se desactiva con `IDENTITY_SEED_TEST_USERS=false`. Nunca sobrescribe una cuenta existente ni degrada un rol ya asignado.
+- Crear otra cuenta (rol `student`): `npm run build && npm run user:create -- --email juan.perez@upb.edu.co --password 'Clave123!' --name 'Juan Pérez' --program 'Ingeniería de Sistemas' --semester 4 --student-id 2024-0100`. En Railway: `railway run npm run user:create -- ...`.
+- `POST /auth/login` devuelve `role` (`student` o `content-admin`), leído fresco de `AccountRoleRepositoryPort` en cada login; sin registro, `student`.
+
 ## Variables de entorno soportadas
+
+- `IDENTITY_SEED_TEST_USERS`: `false` desactiva la creación de cuentas de prueba al arrancar.
 
 - `IDENTITY_RATE_LIMIT_WINDOW_MS`: duración de la ventana para contar fallidos.
 - `IDENTITY_RATE_LIMIT_MAX_PER_ACCOUNT`: máximo de intentos fallidos por cuenta.

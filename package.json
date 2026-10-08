@@ -11,7 +11,8 @@
     "test:coverage": "vitest run --config config/vitest.config.ts --coverage",
     "check:architecture": "node scripts/check-architecture.mjs",
     "check:authorization": "node scripts/check-declared-authorization.mjs",
-    "start:http": "node --env-file=.env dist/src/http-server.js"
+    "start:http": "node --env-file=.env dist/src/http-server.js",
+    "user:create": "node dist/src/create-user.js"
   },
   "dependencies": {
     "express": "^4.21.2",
