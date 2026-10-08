@@ -7,7 +7,9 @@ import { SessionTokenIssuer } from './contexts/identity/application/SessionToken
 import { readSessionConfig } from './contexts/identity/infrastructure/config/SessionConfig.js';
 import { readIdentityRateLimitConfig } from './contexts/identity/infrastructure/config/IdentityRateLimitConfig.js';
 import { SessionPolicy } from './contexts/identity/domain/value-objects/SessionPolicy.js';
-import { InMemoryIdentityProviderAdapter } from './contexts/identity/infrastructure/adapters/out/memory/InMemoryIdentityProviderAdapter.js';
+import { MongoIdentityProviderAdapter } from './contexts/identity/infrastructure/adapters/out/mongo/MongoIdentityProviderAdapter.js';
+import { MongoAccountRoleRepository } from './contexts/identity/infrastructure/adapters/out/mongo/MongoAccountRoleRepository.js';
+import { seedStudentAccounts } from './contexts/identity/infrastructure/seed/StudentAccountSeeder.js';
 import { InMemoryRateLimiter } from './contexts/identity/infrastructure/adapters/out/memory/InMemoryRateLimiter.js';
 import { JoseTokenSigningAdapter } from './contexts/identity/infrastructure/adapters/out/jwt/JoseTokenSigningAdapter.js';
 import { RandomSessionIdGenerator } from './contexts/identity/infrastructure/adapters/out/crypto/RandomSessionIdGenerator.js';
@@ -102,21 +104,29 @@ async function bootstrap(): Promise<void> {
     policy: sessionPolicy
   });
 
-  // ATENCION: `InMemoryIdentityProviderAdapter` solo conoce la cuenta de
-  // prueba que trae por defecto (estudiante@upb.edu.co / S3cr3t!UPB) mas las
-  // que se registren aqui con `.register(...)`. Sustituirlo por
-  // `RealIdentityProviderAdapter` (hoy un stub que siempre lanza) es el unico
-  // cambio necesario para conectar el directorio institucional real —
-  // mismo principio de "adaptador reemplazable sin tocar el caso de uso" que
-  // ya documenta `main.ts` para el buzon IMAP.
-  const identityProvider = new InMemoryIdentityProviderAdapter();
+  // Las cuentas viven en MongoDB (`identity_users`) y su rol en
+  // `identity_account_roles` (HU-46). Sustituir `MongoIdentityProviderAdapter`
+  // por `RealIdentityProviderAdapter` (hoy un stub que siempre lanza) sigue
+  // siendo el unico cambio necesario para conectar el directorio
+  // institucional real — mismo principio de "adaptador reemplazable sin tocar
+  // el caso de uso" que ya documenta `main.ts` para el buzon IMAP.
+  const identityProvider = new MongoIdentityProviderAdapter(db);
+  const accountRoles = new MongoAccountRoleRepository(db);
+
+  // Cuentas de estudiante de prueba (ver `StudentAccountSeeder`). Solo crea
+  // las que falten; se desactiva con IDENTITY_SEED_TEST_USERS=false.
+  if (process.env['IDENTITY_SEED_TEST_USERS'] !== 'false') {
+    const seeded = await seedStudentAccounts(identityProvider, accountRoles);
+    console.log(`[http] cuentas de prueba: ${seeded.created.length} creadas, ${seeded.existing.length} ya existian`);
+  }
 
   const authenticateStudent = new AuthenticateStudent({
     provider: identityProvider,
     rateLimiter: new InMemoryRateLimiter(readIdentityRateLimitConfig()),
     sessions: sessionTokenIssuer,
     profileSync: new FanOutProfileSync([profileSync, forumAuthorSync]),
-    consentStatus
+    consentStatus,
+    accountRoles
   });
 
   const app = createHttpServer([createAuthRouter(authenticateStudent)]);
