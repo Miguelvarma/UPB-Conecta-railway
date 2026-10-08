@@ -19,7 +19,9 @@ export const TEST_STUDENT_ACCOUNTS: readonly IdentityAccount[] = [
   student('valentina.rojas@upb.edu.co', 'Valentina Rojas', 'Administración de Empresas', 4, '2024-0005'),
   student('santiago.herrera@upb.edu.co', 'Santiago Herrera', 'Contaduría Pública', 6, '2024-0006'),
   student('camila.torres@upb.edu.co', 'Camila Torres', 'Psicología', 8, '2024-0007'),
-  student('mateo.castro@upb.edu.co', 'Mateo Castro', 'Periodismo', 1, '2024-0008')
+  student('mateo.castro@upb.edu.co', 'Mateo Castro', 'Periodismo', 1, '2024-0008'),
+  student('daniela.moreno@upb.edu.co', 'Daniela Moreno', 'Ingeniería de Sistemas', 9, '2024-0009'),
+  student('julian.vargas@upb.edu.co', 'Julián Vargas', 'Ingeniería Industrial', 10, '2024-0010')
 ];
 
 function student(email: string, name: string, program: string, semester: number, studentId: string): IdentityAccount {
