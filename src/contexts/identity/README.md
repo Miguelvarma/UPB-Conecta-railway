@@ -57,9 +57,11 @@ Desde HU-30, el foro también necesita los datos del directorio en cada login. `
 
 ## Cuentas en MongoDB y rol en el login
 
-- Al arrancar, `http-server.ts` crea (si no existen) las cuentas de estudiante de prueba de `infrastructure/seed/StudentAccountSeeder.ts`, todas con contraseña `S3cr3t!UPB` y rol `student` en `identity_account_roles`. Se desactiva con `IDENTITY_SEED_TEST_USERS=false`. Nunca sobrescribe una cuenta existente ni degrada un rol ya asignado.
-- Crear otra cuenta (rol `student`): `npm run build && npm run user:create -- --email juan.perez@upb.edu.co --password 'Clave123!' --name 'Juan Pérez' --program 'Ingeniería de Sistemas' --semester 4 --student-id 2024-0100`. En Railway: `railway run npm run user:create -- ...`.
-- `POST /auth/login` devuelve `role` (`student` o `content-admin`), leído fresco de `AccountRoleRepositoryPort` en cada login; sin registro, `student`.
+- Roles: `student`, `professor` y `content-admin`, con jerarquía estudiante < profesor < administrador (`AuthorizationPolicy`).
+- Al arrancar, `http-server.ts` crea (si no existen) las cuentas de prueba de `infrastructure/seed/TestAccountSeeder.ts`: 10 estudiantes y 3 profesores (`profesor@upb.edu.co`, `patricia.suarez@upb.edu.co`, `jorge.navarro@upb.edu.co`), todos con contraseña `S3cr3t!UPB`, con su rol en `identity_account_roles`. Se desactiva con `IDENTITY_SEED_TEST_USERS=false`. Nunca sobrescribe una cuenta existente ni cambia un rol ya asignado.
+- Un profesor no tiene semestre: su login sincroniza el autor del foro, pero no crea perfil de segmentación de estudiante.
+- Crear otra cuenta: `npm run build && npm run user:create -- --email juan.perez@upb.edu.co --password 'Clave123!' --name 'Juan Pérez' --program 'Ingeniería de Sistemas' --semester 4 --student-id 2024-0100`. Para un profesor: `--role professor` y sin `--semester`. Con `--role` sobre una cuenta existente, el cambio de rol queda auditado (`ChangeAccountRole`). En Railway: `railway run npm run user:create -- ...`.
+- `POST /auth/login` devuelve `role` (`student`, `professor` o `content-admin`), leído fresco de `AccountRoleRepositoryPort` en cada login; sin registro, `student`.
 
 ## Variables de entorno soportadas
 

@@ -2,7 +2,7 @@ import { MongoClient, type Db } from 'mongodb';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { MongoIdentityProviderAdapter } from '../../../src/contexts/identity/infrastructure/adapters/out/mongo/MongoIdentityProviderAdapter.js';
 import { MongoAccountRoleRepository } from '../../../src/contexts/identity/infrastructure/adapters/out/mongo/MongoAccountRoleRepository.js';
-import { seedStudentAccounts, TEST_STUDENT_ACCOUNTS } from '../../../src/contexts/identity/infrastructure/seed/StudentAccountSeeder.js';
+import { seedTestAccounts, TEST_ACCOUNTS } from '../../../src/contexts/identity/infrastructure/seed/TestAccountSeeder.js';
 import { InvalidCredentialsError } from '../../../src/contexts/identity/application/AuthenticateStudent.js';
 import { Role } from '../../../src/contexts/identity/domain/value-objects/Role.js';
 
@@ -74,20 +74,29 @@ describe('MongoIdentityProviderAdapter (integración contra MongoDB real)', () =
     await expect(users.authenticate({ username: ACCOUNT.username, password: 'Ignorada789!', origin: 'test' })).rejects.toBeInstanceOf(InvalidCredentialsError);
   });
 
-  it('el seed crea los estudiantes de prueba con rol student y es idempotente sin degradar roles', async () => {
-    const first = await seedStudentAccounts(users, roles);
-    expect(first.created).toHaveLength(TEST_STUDENT_ACCOUNTS.length);
+  it('el seed crea estudiantes y profesores con su rol y es idempotente sin cambiar roles asignados', async () => {
+    const first = await seedTestAccounts(users, roles);
+    expect(first.created).toHaveLength(TEST_ACCOUNTS.length);
 
     await roles.save({ subject: 'carlos.ramirez@upb.edu.co', role: Role.CONTENT_ADMIN, assignedAt: new Date(), assignedBy: 'coordinador@upb.edu.co' });
-    const second = await seedStudentAccounts(users, roles);
+    const second = await seedTestAccounts(users, roles);
 
     expect(second.created).toHaveLength(0);
-    expect(second.existing).toHaveLength(TEST_STUDENT_ACCOUNTS.length);
+    expect(second.existing).toHaveLength(TEST_ACCOUNTS.length);
     expect((await roles.findBySubject('estudiante@upb.edu.co'))?.role).toBe(Role.STUDENT);
+    expect((await roles.findBySubject('profesor@upb.edu.co'))?.role).toBe(Role.PROFESSOR);
     expect((await roles.findBySubject('carlos.ramirez@upb.edu.co'))?.role).toBe(Role.CONTENT_ADMIN);
     await expect(users.authenticate({ username: 'laura.martinez@upb.edu.co', password: 'S3cr3t!UPB', origin: 'test' })).resolves.toMatchObject({
       program: 'Ingeniería Industrial',
       semester: 7
     });
+  });
+
+  it('un profesor se autentica sin semestre', async () => {
+    await seedTestAccounts(users, roles);
+
+    const profile = await users.authenticate({ username: 'profesor@upb.edu.co', password: 'S3cr3t!UPB', origin: 'test' });
+
+    expect(profile).toEqual({ name: 'Ricardo Méndez', email: 'profesor@upb.edu.co', program: 'Ingeniería de Sistemas' });
   });
 });
