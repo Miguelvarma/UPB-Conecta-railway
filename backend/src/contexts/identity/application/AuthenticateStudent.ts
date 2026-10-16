@@ -1,0 +1,99 @@
+import type { IdentityCredentials, IdentityProfile, IdentityProviderPort } from '../domain/ports/out/IdentityProviderPort.js';
+import type { AuthenticatedProfileSyncPort } from '../domain/ports/out/AuthenticatedProfileSyncPort.js';
+import type { RateLimiterPort } from '../domain/ports/out/RateLimiterPort.js';
+import type { ConsentStatusPort } from '../domain/ports/out/ConsentStatusPort.js';
+import type { AccountRoleRepositoryPort } from '../domain/ports/out/AccountRoleRepositoryPort.js';
+import { Role } from '../domain/value-objects/Role.js';
+import { AuthenticationFailureKind, type AuthenticationResult } from '../domain/entities/AuthenticationResult.js';
+import type { SessionTokenIssuer } from './SessionTokenIssuer.js';
+
+export interface AuthenticateStudentInput extends IdentityCredentials {}
+
+export class ProviderUnavailableError extends Error {
+  constructor(message = 'El directorio institucional no está disponible en este momento.') {
+    super(message);
+    this.name = 'ProviderUnavailableError';
+  }
+}
+
+export class InvalidCredentialsError extends Error {
+  constructor(message = 'Credenciales inválidas.') {
+    super(message);
+    this.name = 'InvalidCredentialsError';
+  }
+}
+
+export class AuthenticateStudent {
+  constructor(
+    private readonly dependencies: {
+      readonly provider: IdentityProviderPort;
+      readonly rateLimiter: RateLimiterPort;
+      readonly sessions: SessionTokenIssuer;
+      readonly profileSync: AuthenticatedProfileSyncPort;
+      readonly consentStatus: ConsentStatusPort;
+      /**
+       * HU-46: de donde se lee el rol que viaja en la respuesta. Opcional:
+       * sin repositorio toda cuenta es `Role.STUDENT`, igual que sin registro.
+       */
+      readonly accountRoles?: AccountRoleRepositoryPort;
+    }
+  ) {}
+
+  async execute(input: AuthenticateStudentInput): Promise<AuthenticationResult> {
+    const accountId = input.username.trim().toLowerCase();
+    const origin = input.origin.trim();
+
+    if (!(await this.dependencies.rateLimiter.checkAllowed(accountId, origin))) {
+      return {
+        ok: false,
+        error: AuthenticationFailureKind.RATE_LIMITED,
+        message: 'Demasiados intentos. Intente de nuevo más tarde.'
+      };
+    }
+
+    let profile: IdentityProfile;
+    try {
+      profile = await this.dependencies.provider.authenticate(input);
+    } catch (error) {
+      await this.dependencies.rateLimiter.recordFailure(accountId, origin);
+
+      if (error instanceof ProviderUnavailableError) {
+        return {
+          ok: false,
+          error: AuthenticationFailureKind.PROVIDER_UNAVAILABLE,
+          message: 'El directorio institucional no está disponible en este momento.'
+        };
+      }
+
+      return {
+        ok: false,
+        error: AuthenticationFailureKind.INVALID_CREDENTIALS,
+        message: 'Credenciales inválidas.'
+      };
+    }
+
+    await this.dependencies.rateLimiter.recordSuccess(accountId, origin);
+    // HU-37: el perfil persistido se refresca con el directorio antes de abrir
+    // la sesion, para que el primer feed ya use programa y semestre vigentes.
+    await this.dependencies.profileSync.syncFromDirectory(profile);
+    // HU-45: el sujeto del token es el correo institucional, que el proveedor
+    // siempre devuelve (a diferencia de `studentId`, que es opcional).
+    const session = await this.dependencies.sessions.startSession(profile.email);
+    // HU-44, criterio 1: mismo identificador que el sujeto de la sesion, para
+    // que el consentimiento registrado y la sesion abierta se refieran al
+    // mismo estudiante sin depender de `studentId` (opcional). Se evalua
+    // fresco en cada login, nunca cacheado — mismo principio que HU-46 aplica
+    // al rol de la cuenta.
+    const consent = await this.dependencies.consentStatus.getRequirement(profile.email);
+    const roleRecord = await this.dependencies.accountRoles?.findBySubject(profile.email);
+    const role = roleRecord?.role ?? Role.STUDENT;
+    return {
+      ok: true,
+      profile,
+      role,
+      message: 'Autenticación correcta.',
+      session,
+      consent
+    };
+  }
+}

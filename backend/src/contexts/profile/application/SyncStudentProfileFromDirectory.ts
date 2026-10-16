@@ -1,0 +1,65 @@
+import { normalizeEmail, StudentProfile, type DirectoryRecord } from '../domain/entities/StudentProfile.js';
+import type { ClockPort } from '../domain/ports/out/ClockPort.js';
+import type { ProgramCatalogPort } from '../domain/ports/out/ProgramCatalogPort.js';
+import type { StudentProfileRepositoryPort } from '../domain/ports/out/StudentProfileRepositoryPort.js';
+import type { SemesterBounds } from '../domain/value-objects/SemesterNumber.js';
+import { saveWithRetry } from './saveWithRetry.js';
+
+export class ProfileSyncConflictError extends Error {
+  constructor(email: string) {
+    super(`No se pudo sincronizar el perfil de ${email}: modificacion concurrente persistente.`);
+    this.name = 'ProfileSyncConflictError';
+  }
+}
+
+/**
+ * Sincroniza el perfil con el directorio en cada autenticacion (HU-37): crea
+ * el perfil la primera vez y, despues, refresca los campos del directorio sin
+ * tocar un semestre editado por el estudiante.
+ */
+export class SyncStudentProfileFromDirectory {
+  constructor(
+    private readonly dependencies: {
+      readonly profiles: StudentProfileRepositoryPort;
+      readonly clock: ClockPort;
+      readonly bounds: SemesterBounds;
+      readonly programs: ProgramCatalogPort;
+    }
+  ) {}
+
+  async execute(record: DirectoryRecord): Promise<StudentProfile> {
+    const { profiles, clock, bounds, programs } = this.dependencies;
+    const email = normalizeEmail(record.email);
+    // Bug 3: se traduce en cada login, asi un programa que el catalogo agregue
+    // despues queda reconocido en la siguiente autenticacion.
+    const programId = programs.resolveProgramId(record.program);
+
+    const saved = await saveWithRetry(profiles, email, (current) =>
+      current === null
+        ? StudentProfile.fromDirectory(record, programId, bounds, clock.now())
+        : current.syncedWith(record, programId, bounds, clock.now())
+    );
+    // `apply` nunca devuelve null aqui, asi que el unico fallo posible es el conflicto.
+    if (typeof saved !== 'string') return saved;
+
+    // Muchos inicios de sesion simultaneos de la misma cuenta (varias replicas,
+    // reintentos del cliente) compiten por el mismo documento y los perdedores
+    // agotan sus intentos. Si quien gano ya dejo guardado lo mismo que esta
+    // sincronizacion iba a escribir, el resultado es identico y fallar el login
+    // no aportaria nada: se devuelve el perfil vigente. Si lo guardado difiere
+    // (otro cambio real), el conflicto sigue siendo un error y nada se pisa.
+    const current = await profiles.findByEmail(email);
+    if (current !== null && this.alreadyReflects(current, record, programId)) return current;
+    throw new ProfileSyncConflictError(email);
+  }
+
+  private alreadyReflects(current: StudentProfile, record: DirectoryRecord, programId: string | null): boolean {
+    const { clock, bounds } = this.dependencies;
+    const expected = current.syncedWith(record, programId, bounds, clock.now());
+    return (
+      current.directory.programId === expected.directory.programId &&
+      current.semesterSource === expected.semesterSource &&
+      current.semester?.value === expected.semester?.value
+    );
+  }
+}

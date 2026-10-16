@@ -1,0 +1,199 @@
+# UPB Conecta
+
+Plataforma móvil centralizada de información académica para la UPB Seccional Bucaramanga: reúne en una sola aplicación las convocatorias con fecha de cierre y la oferta de prácticas que hoy se dispersan en el correo masivo institucional y en los canales de cada coordinación, clasificadas por programa académico, con notificaciones anticipadas, mapa del campus, foro con identidad verificada y moderación automática, y un chatbot de preguntas frecuentes.
+
+Proyecto académico de **Proyecto Integrador III**, Ingeniería de Sistemas e Informática, Universidad Pontificia Bolivariana — Seccional Bucaramanga, 2026-20.
+
+## El problema
+
+El correo masivo institucional entrega toda la información con el mismo peso visual: boletines, avisos administrativos, eventos y convocatorias con fecha límite llegan juntos, sin jerarquía ni segmentación por programa. Un anuncio crítico —como la apertura de un curso requisito de grado— puede descubrirse cuando la inscripción ya cerró. La oferta de prácticas se dispersa entre correo, carteleras y anuncios de cada coordinación sin un listado único. Las aplicaciones institucionales existentes (UPB Digital, UPB Colombia) resuelven identificación digital y acceso físico, pero no priorización por fecha de cierre ni orientación espacial fuera de la sede de Medellín. Tampoco existe un espacio institucional de interacción horizontal entre estudiantes con identidad verificada.
+
+UPB Conecta ataca específicamente ese vacío: agregación, segmentación y oportunidad — no la disponibilidad de la información, que ya existe, sino su organización.
+
+## Equipo
+
+| Rol | Integrante |
+|---|---|
+| Product Owner | Miguel José Vargas Martínez |
+| Scrum Master | Johan Sebastián Almeida Rincón |
+| Developer | Juan Eduardo Benítez Pájaro |
+
+## Estado actual del código
+
+Este proyecto (backend, subcarpeta `backend/` del repositorio) implementa, por ahora, diecisiete historias entre el Sprint 1 y el Sprint 2: **HU-01 (SCRUM-13)** — conexión programada e idempotente al buzón institucional recolector, el primer eslabón del pipeline de ingesta (EP-01), base de todo lo demás: sin ingesta no hay clasificación, sin clasificación no hay feed, sin feed no hay notificaciones — junto con **HU-02** (extracción de metadatos y normalización del cuerpo), **HU-03** (deduplicación por contenido en ventana temporal), **HU-04** (cuarentena de mensajes no procesables y bitácora, criterios 1-4), **HU-05** (resiliencia del buzón), **HU-08** (extracción de fecha de cierre y enlace de postulación), **HU-15** (vista de detalle de la convocatoria, criterios 1-4), **HU-16** (marcado de estado personal, criterios 1/2/3/5), **HU-18** (registro y ciclo de vida de dispositivos, criterios 1-5), **HU-19** (aviso anticipado al vencimiento según la preferencia del estudiante), **HU-20** (aviso de nueva convocatoria pertinente al programa del estudiante), **HU-21** (agrupación de avisos y límite diario, criterios 1/2/3/6), **HU-38** (preferencias de notificación, criterios 1/2/3/5/6), **HU-44** (consentimiento informado), **HU-51** (tablero de métricas de operación y calidad del clasificador, criterios 1-6), **HU-53** (verificación automatizada de la arquitectura) y **HU-55** (rendimiento y resiliencia, criterios 2-4 y 6; 3-4 parciales).
+
+> Nota: esta sección no lista todavía cada historia implementada en el repositorio (por ejemplo HU-06 a HU-12, HU-30, HU-37, HU-43, HU-45-HU-47, HU-49-HU-50, ya en `main` — ver el listado completo y actualizado en el [README raíz](../README.md#estado-actual)); se mantiene aquí en su redacción original de Sprint 1-2 y solo se le agregaron estas historias.
+
+El resto del backlog (12 épicas, 57 historias de usuario, ver la Especificación de Requerimientos y el Product Backlog del proyecto) vive en Jira. Los sprints activos agrupan, además de estas catorce, las historias que comparten su mismo riesgo técnico — ingesta, deduplicación, clasificación temprana y arquitectura verificable:
+
+| Historia | Qué cubre |
+|---|---|
+| HU-01 *(implementada aquí)* | Conexión programada e idempotente al buzón institucional |
+| HU-02 *(implementada aquí)* | Extracción de metadatos y normalización del cuerpo del mensaje |
+| HU-03 *(implementada aquí)* | Deduplicación por contenido dentro de ventana temporal configurable |
+| HU-04 *(implementada aquí, criterios 1-4)* | Cuarentena de mensajes no procesables y bitácora de ingesta |
+| HU-05 *(implementada aquí)* | Reintento con espera exponencial y circuit breaker ante indisponibilidad del buzón |
+| HU-08 *(implementada aquí)* | Extracción de fecha de cierre y enlace de postulación |
+| HU-15 *(implementada aquí, criterios 1-4)* | Vista de detalle de la convocatoria con acceso al canal de postulación |
+| HU-16 *(implementada aquí, criterios 1/2/3/5)* | Marcado de estado personal y sección separada de eventos de interés general |
+| HU-18 *(implementada aquí, criterios 1-5)* | Registro y ciclo de vida del dispositivo para entrega de notificaciones |
+| HU-19 *(implementada aquí)* | Aviso anticipado al vencimiento según la anticipación configurada y la preferencia del estudiante |
+| HU-20 *(implementada aquí)* | Aviso de nueva convocatoria pertinente al programa del estudiante al publicarse |
+| HU-21 *(implementada aquí, criterios 1/2/3/6)* | Agrupación de avisos, límite diario y apertura directa al detalle |
+| HU-38 *(implementada aquí, criterios 1/2/3/5/6)* | Preferencias de notificación por categoría, anticipación y tema visual |
+| HU-44 *(implementada aquí)* | Consentimiento informado de tratamiento de datos con registro versionado |
+| HU-51 *(implementada aquí, criterios 1-6)* | Tablero de métricas de operación y calidad del clasificador |
+| HU-53 *(implementada aquí)* | Aislamiento del dominio verificable y sustituibilidad de los adaptadores |
+| HU-54 | Cobertura de pruebas bajo TDD y dobles para escenarios de falla externa |
+| HU-55 *(implementada aquí, criterios 2-4, 6)* | Rendimiento bajo carga (parcial) y degradación controlada ante fallos |
+| T-01 | Desbloqueo de las dependencias institucionales externas (buzón y directorio) |
+| T-02 | Modelo de datos documental, repositorios e índices base |
+
+`src/contexts/consent/`, `src/contexts/notifications/`, `src/contexts/personalization/` y `src/contexts/metrics/` (HU-51, tablero de métricas de operación) son algunos de los contextos fuera de `ingestion` — mismo patrón hexagonal, ver el README propio de cada uno; el árbol completo de contextos hoy incluye además `classification`, `identity`, `consent`, `forum`, `targeting`, `hardening`, `moderation`, `feed`, `profile`, `practices` (HU-22, HU-23, HU-24), `knowledge` (HU-41, base de conocimiento del chatbot) y `datarights` (HU-48, derechos del titular y retención), cada uno con su propio README.
+
+## Arquitectura
+
+**Hexagonal (puertos y adaptadores, Cockburn).** No es una preferencia de estilo: el buzón institucional, el futuro servicio de clasificación y el proveedor de notificaciones push son dependencias externas fuera del control del equipo, con contratos que pueden cambiar sin aviso. La arquitectura hexagonal obliga a que esas fuentes entren al sistema como adaptadores reemplazables detrás de un puerto, de modo que el dominio se pueda desarrollar y probar de forma aislada — y que sustituir, por ejemplo, el `InMemoryMailboxAdapter` simulado por el `ImapMailboxAdapter` real (cuando la Universidad habilite el buzón) sea un cambio de una línea en la raíz de composición, sin tocar dominio ni casos de uso.
+
+```
+src/contexts/ingestion/
+  domain/          value objects, entidades, políticas y puertos (in/out). No importa infraestructura.
+  application/     el caso de uso. Orquesta puertos, no conoce IMAP ni MongoDB.
+  infrastructure/  configuración, planificador, normalización MIME (HU-02), extracción de fecha/enlace (HU-08) y adaptadores: mongo/, imap/, memory/, resilience/ (retry + circuit breaker), normalization/ (puerto de HU-03).
+src/contexts/consent/
+  domain/          ConsentRecord, ConsentPolicy, puertos (in/out).
+  application/     RecordConsent, GetConsentStatus.
+  infrastructure/  adaptadores en memoria y MongoDB (append-only), reloj.
+src/contexts/notifications/
+  domain/          DeviceRegistration, NotificationPreferences, NotificationScheduler (HU-19), puertos (in/out).
+  application/     RegisterDevice, InvalidateDevice, ListActiveDevices, UpdateNotificationPreferences, GetNotificationPreferences,
+                    EmitDueDateReminders (HU-19), NotifyProgramTargetedPublication (HU-20).
+  infrastructure/  adaptadores en memoria y MongoDB, planificador de avisos de vencimiento (HU-19), reloj.
+src/contexts/personalization/
+  domain/          ConvocatoriaPersonalState, puertos (in/out).
+  application/     UpdatePersonalState, GetPersonalState, ListSavedConvocatorias, ListArchivedConvocatorias.
+  infrastructure/  adaptadores en memoria y MongoDB, reloj.
+src/main.ts        raíz de composición: el scheduler de ingesta y, desde HU-19, el planificador de avisos de vencimiento
+                    (`DueDateReminderScheduler`) corren en paralelo; único lugar donde se eligen los adaptadores concretos.
+```
+
+La regla de dependencia (RNF-41: el dominio no importa framework, persistencia ni cliente externo) no es solo una convención — `scripts/check-architecture.mjs` la verifica por análisis estático y rompe el pipeline si alguien la viola.
+
+## Stack técnico
+
+- **TypeScript** estricto sobre Node.js (ES modules).
+- **MongoDB** como motor documental — decisión deliberada, no relacional: los mensajes institucionales son heterogéneos (unos declaran fecha de cierre, otros no; unos identifican programa destinatario, otros se dirigen a toda la comunidad), y forzar esa variabilidad en un esquema relacional fijo produciría una tabla con mayoría de columnas vacías y una migración por cada tipo nuevo de convocatoria.
+- **Vitest** para pruebas, con dos estrategias distintas según la capa (ver más abajo).
+
+## Cómo levantar el entorno
+
+### 1. MongoDB real en local
+
+El proyecto usa MongoDB de verdad para correr — tanto en ejecución normal como en las pruebas de los adaptadores — no una base simulada:
+
+```bash
+brew tap mongodb/brew
+brew install mongodb-community
+brew services start mongodb-community
+brew install redis && brew services start redis   # solo para las pruebas de los adaptadores de cache
+```
+
+Queda escuchando en `mongodb://localhost:27017`, sin autenticación (uso local de desarrollo). Verificar que responde:
+
+```bash
+mongosh --eval "db.runCommand({ping:1})"
+```
+
+### 2. Variables de entorno
+
+```bash
+cp .env.example .env
+```
+
+`INGESTION_INTERVAL_MS` y `INGESTION_BATCH_SIZE` controlan el planificador (RF-01, criterio 2: la frecuencia es parametrizable sin recompilar). `MAILBOX_*` son las credenciales del buzón IMAP real (todavía no habilitado por la Universidad — ver la nota en el README del contexto de ingesta). `MONGODB_URI` y `MONGODB_DATABASE` apuntan a la instancia local. `SESSION_*`, `IDENTITY_RATE_LIMIT_*`, `PROFILE_SEMESTER_MAX` y `HTTP_PORT` configuran el servidor HTTP (ver más abajo) — `SESSION_SIGNING_SECRET` es obligatorio y debe generarse propio, nunca reutilizar el placeholder del `.env.example`.
+
+### 3. Instalar y correr
+
+```bash
+npm install
+npm run typecheck            # TypeScript estricto
+npm run check:architecture   # RNF-41: el dominio no puede importar infraestructura
+npm run check:authorization  # HU-46: toda operacion administrativa declara su rol requerido
+npm test                     # suite completa (requiere MongoDB corriendo)
+npm run test:coverage        # umbral del 80% sobre dominio y casos de uso
+npm run build                # compila a dist/
+npm run start:http           # API HTTP (auth, mensajería, /health, /ready) — requiere build previo y MongoDB
+npm run start:worker         # planificadores de ingesta y avisos de vencimiento — requiere build previo y MongoDB
+# En local, `dev:http` y `dev:worker` hacen lo mismo leyendo el archivo .env
+```
+
+`start:http` arranca `src/http-server.ts`: el servidor Express que expone el contrato REST que consume `Frontend/` (hoy solo `POST /auth/login` — ver `src/contexts/identity/README.md`, sección "Adaptador de entrada HTTP"). Es un proceso independiente de `main.ts` (que arranca los planificadores de ingesta/avisos): pueden correr a la vez o por separado.
+
+Si MongoDB no está disponible, `npm test` falla de entrada con un mensaje explícito (`tests/setup/ensureMongoAvailable.ts`) en lugar de colgarse o fallar de forma críptica en cada archivo.
+
+## Despliegue en Railway (varias instancias)
+
+El sistema corre como **tres servicios** de un mismo proyecto de Railway, sobre una red privada. Solo la API tiene dominio público:
+
+```
+ Internet ──TLS──▶ borde de Railway ──▶ api (N réplicas, dominio público)
+                                           │
+                       red privada         ├──▶ mongodb (sin proxy TCP público, volumen persistente)
+                    (*.railway.internal)   ├──▶ redis   (cache; sin proxy TCP público)
+                                           │
+                                      worker (1 réplica, sin dominio público) ──▶ mongodb
+```
+
+| Servicio | Qué ejecuta | Réplicas | Config |
+|---|---|---|---|
+| `api` | `npm run start:http` (`src/http-server.ts`): login, refresh, logout, mensajería, `/health`, `/ready` | 2 o más | `backend/railway.api.json` |
+| `worker` | `npm run start:worker` (`src/main.ts`): ingesta del buzón y avisos de vencimiento | 1 | `backend/railway.worker.json` |
+| `mongodb` | Plantilla de MongoDB de Railway | 1 | — |
+| `redis` | Plantilla de Redis de Railway (cache, opcional) | 1 | — |
+
+En cada servicio de aplicación: *Root Directory* = `backend` y *Config-as-code file path* = `/backend/railway.api.json` o `/backend/railway.worker.json`. El comando de build y el de arranque, el healthcheck (`/ready`) y el número de réplicas quedan versionados en esos archivos.
+
+**Qué hace seguro tener varias réplicas**
+
+- El estado compartido vive en MongoDB: sesiones y refresh tokens, consentimiento, mensajería y el **limitador de intentos de login** (`MongoRateLimiter`), de modo que el límite de RNF-16 vale entre todas las réplicas. El origen del límite es la IP real del cliente (`trust proxy` detrás del borde de Railway).
+- Los planificadores del `worker` toman un arrendamiento en MongoDB (`MongoLease`, colección `scheduler_leases`) en cada ciclo: aunque haya dos workers o un reinicio con solape, un ciclo no corre dos veces a la vez. Si el titular muere, el arrendamiento vence solo.
+- `/health` es *liveness* (el proceso responde); `/ready` es *readiness* (MongoDB responde y la réplica no se está apagando). Con `SIGTERM`, `/ready` pasa a 503, la réplica espera `SHUTDOWN_GRACE_MS` (3 s) para que el balanceador la retire, termina las peticiones en vuelo y cierra MongoDB.
+- **Redis es una cache opcional con respaldo, no una dependencia.** Con `REDIS_URL` definida la API guarda en Redis (a) las cadenas de sesión revocadas/vivas (`RedisCachedRefreshTokenRepository`, decorador del repositorio de refresh tokens: MongoDB sigue siendo la fuente de verdad y el corte de sesión por logout es inmediato en todas las réplicas) y (b) los contadores del límite de login (`RedisRateLimiter`). Sin `REDIS_URL`, o si Redis cae o tarda más de 250 ms, se usa MongoDB (`FallbackRateLimiter`, consulta directa a la fuente de verdad); `/ready` informa `redis: up|down|disabled` pero no depende de él. Medido con 2 réplicas y 300 conexiones sobre una ruta autenticada: +32 % de peticiones por segundo y p99 de 71 a 62 ms; con Redis apagado en plena carga, 0 errores.
+- Cada respuesta lleva `X-Instance` con el id de la réplica (`RAILWAY_REPLICA_ID`), útil para comprobar el balanceo.
+
+**Variables de entorno** (ver `.env.example` para la lista completa)
+
+| Variable | Servicios | Valor |
+|---|---|---|
+| `MONGODB_URI` | api, worker | Referencia al servicio de MongoDB por la red privada, p. ej. `${{mongodb.MONGO_URL}}` |
+| `MONGODB_DATABASE` | api, worker | `upb_conecta` |
+| `SESSION_SIGNING_SECRET` | api | Mínimo 32 caracteres y **el mismo en todas las réplicas** (variable compartida del entorno) |
+| `IDENTITY_SEED_TEST_USERS` | api | `true` solo en local o staging. **No definir en producción**: las cuentas de prueba comparten una contraseña pública |
+| `REDIS_URL` | api | Opcional. Referencia al servicio de Redis por la red privada, p. ej. `${{Redis.REDIS_URL}}` |
+| `SERVICE_ROLE` | api, worker | `api` (por defecto) o `worker`: decide qué proceso ejecuta `npm start` |
+| `SHUTDOWN_GRACE_MS` | api | Opcional, 3000 por defecto |
+
+Nota sobre la red privada: los entornos de Railway creados antes del 16-oct-2025 resuelven `*.railway.internal` solo por IPv6; los nuevos, por IPv4 e IPv6.
+
+## Estrategia de pruebas: por qué hay dos tipos
+
+- **Dominio, aplicación y planificador** (`tests/domain/`, `tests/application/`, la parte del scheduler/config en `tests/infrastructure/`): dobles en memoria escritos a mano, sin red ni base de datos. Es lo que permite probar el caso de uso completo mientras la Universidad habilita el buzón real, y es rápido porque no depende de infraestructura.
+- **Los tres adaptadores de MongoDB** (`tests/infrastructure/mongo/*.integration.test.ts`): corren contra la instancia real de MongoDB descrita arriba, no contra un mock del driver. Un mock le devolvería al test lo que el test le pida sin validar que el filtro por `_id`, el `upsert` con `$setOnInsert` o el índice declarado en `ensureIndexes` funcionan de verdad contra el motor real — que es exactamente el tipo de fallo silencioso que un adaptador puede introducir.
+
+Esta separación es deliberada y es el punto central de la arquitectura hexagonal: el dominio se prueba sin infraestructura, la infraestructura se prueba contra infraestructura real.
+
+## CI/CD
+
+`.github/workflows/ci.yml` corre en cada push y cada pull request contra `main`: typecheck, regla de arquitectura, la suite completa de pruebas (con MongoDB real como *service container*) y `npm audit` sobre dependencias de producción. La rama `main` está protegida: un pull request no se puede fusionar si ese workflow no queda en verde, ni siquiera para el dueño del repositorio.
+
+## Seguridad
+
+- Ninguna credencial vive en el repositorio: `.env` está en `.gitignore`, `.env.example` solo tiene placeholders.
+- Las consultas a MongoDB usan filtros tipados del driver, nunca concatenación de strings — sin superficie de inyección.
+- La garantía de idempotencia (RF-02) vive en el dominio (`IdempotencyPolicy`), no depende únicamente de una restricción de base de datos como defensa.
+- El adaptador IMAP nunca registra credenciales en logs.
+- `npm audit` sin vulnerabilidades pendientes en dependencias de producción (verificado en CI en cada cambio).
+
+## Trazabilidad
+
+Todo el código enlaza de vuelta a la Especificación de Requerimientos: los identificadores `RF-XX` / `RNF-XX` en los comentarios de dominio remiten a los requerimientos funcionales/no funcionales, `HU-XX` a la historia de usuario en Jira, y `CU-XX` al caso de uso formal. El detalle específico de HU-01 —criterios de aceptación uno por uno y qué prueba cubre cada uno— está en [`src/contexts/ingestion/README.md`](src/contexts/ingestion/README.md).
