@@ -39,6 +39,8 @@ import { readDueDateReminderConfig } from './contexts/notifications/infrastructu
 import { DueDateReminderScheduler } from './contexts/notifications/infrastructure/scheduler/DueDateReminderScheduler.js';
 import { SystemClock as NotificationsSystemClock } from './contexts/notifications/infrastructure/adapters/out/memory/SystemClock.js';
 import { MongoLease, withLease } from './infrastructure/shared/MongoLease.js';
+import { PracticeTrackingFollowersAdapter } from './contexts/notifications/infrastructure/adapters/out/practices/PracticeTrackingFollowersAdapter.js';
+import { MongoPracticeApplicationTrackingRepository } from './contexts/practices/infrastructure/adapters/out/mongo/MongoPracticeApplicationTrackingRepository.js';
 
 /**
  * Raiz de composicion: unico lugar del sistema donde el dominio se encuentra
@@ -59,6 +61,7 @@ async function bootstrap(): Promise<void> {
   await MongoPostProcessingRuleRepository.ensureIndexes(db);
   await MongoEmittedReminderRegistry.ensureIndexes(db);
   await MongoLease.ensureIndexes(db);
+  await MongoPracticeApplicationTrackingRepository.ensureIndexes(db);
 
   const clock = new SystemClock();
   const notificationsClock = new NotificationsSystemClock();
@@ -159,7 +162,9 @@ async function bootstrap(): Promise<void> {
     preferencesRepo: notificationPreferencesRepo,
     emittedReminders: new MongoEmittedReminderRegistry(db),
     systemThresholds: readDueDateReminderConfig().systemThresholds,
-    clock: notificationsClock
+    clock: notificationsClock,
+    // HU-23: tambien avisa a quien sigue una practica de interes o postulada.
+    followers: new PracticeTrackingFollowersAdapter(new MongoPracticeApplicationTrackingRepository(db))
   });
   const dueDateReminderScheduler = new DueDateReminderScheduler(
     withLease(lease, 'avisos-vencimiento', REMINDERS_LEASE_TTL_MS, emitDueDateReminders, () => {

@@ -314,3 +314,8 @@ arranca los planificadores de ingesta/avisos.
 `POST /auth/login` devuelve además `role` (`student`, `professor` o `content-admin`); ver
 "Cuentas en MongoDB y rol en el login" más arriba. Las rutas de refresh y cierre de sesión
 (`/auth/refresh`, `/auth/logout`) comparten el mismo adaptador HTTP.
+
+## HU-40: descartar el contexto del chatbot al cerrar la sesión
+
+`LogoutSession` recibe un `SessionEndedPort` opcional y lo invoca con el `sessionId` (la cadena) después de revocarla. Lo implementa `ChatbotConversationSessionEndedAdapter`, que descarta la conversación del chatbot de esa sesión (`EndChatbotConversation`). Es idempotente, como el resto del cierre. Ver `src/contexts/chatbot/README.md`, sección HU-40.
+
