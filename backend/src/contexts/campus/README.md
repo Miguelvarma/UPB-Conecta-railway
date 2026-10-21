@@ -6,7 +6,7 @@
 
 ## Alcance
 
-Igual que HU-24 y HU-30, no hay servidor HTTP ni cliente móvil: se entregan el catálogo de espacios, los casos de uso que el módulo de mapa invocará y el puerto del proveedor de cartografía.
+Se entregan el catálogo de espacios, los casos de uso que el módulo de mapa invoca, el puerto del proveedor de cartografía y la capa HTTP de solo lectura que consume la app Android.
 
 | Pieza | Capa | Rol |
 |---|---|---|
@@ -17,13 +17,24 @@ Igual que HU-24 y HU-30, no hay servidor HTTP ni cliente móvil: se entregan el 
 | `CampusCatalogRepositoryPort`, `MapProviderPort` | Puertos | |
 | `GetCampusMap`, `FilterPointsOfInterest`, `SelectBuildingLevel` | Aplicación | Criterios 1, 3 y 4 |
 | `InMemoryCampusCatalogRepository`, `InMemoryMapProvider`, `loadCampusCatalog` | Infraestructura | Repositorio y doble del proveedor; carga de `config/campus-catalog.json` |
+| `ClientRenderedMapProvider` | Infraestructura | Proveedor del servidor HTTP: no dibuja nada porque el mapa lo pinta la app |
+| `createCampusRouter` | Infraestructura (HTTP) | `GET /campus/map` y `GET /campus/buildings/:buildingId`, con sesión |
 
 ## Decisiones
 
 1. **El catálogo es del dominio, no una capa del proveedor.** `MapProviderPort.render(scene)` recibe una escena con tipos del dominio (centro, marcadores, foco en un nivel) y no devuelve datos. Sustituir el proveedor implica escribir otro adaptador de ese puerto; ni el catálogo ni los casos de uso cambian (criterio 5).
-2. **Datos semilla como configuración.** `config/campus-catalog.json` se valida al cargarse. **Las coordenadas, nombres de bloques y niveles son un ejemplo aproximado**: deben reemplazarse por el levantamiento real del campus antes de usarse.
+2. **Datos semilla como configuración.** `config/campus-catalog.json` se valida al cargarse. Los edificios A a L, el templo y los parqueaderos son los del campus de Floridablanca con las coordenadas del centro de cada contorno en la cartografía abierta (exportación de octubre de 2026). **El número de niveles de cada edificio y la ubicación de cafeterías, biblioteca, coordinaciones y baños son provisionales**: deben confirmarse con la Universidad.
 3. **Puntos de interés en un edificio llevan nivel; al aire libre no** (por ejemplo, parqueaderos). La validación lo exige.
 4. **Sin `MongoCampusCatalogRepository`.** El catálogo se lee del archivo de configuración; una colección solo haría falta si se edita en línea (historia futura).
+
+## API HTTP
+
+| Método y ruta | Respuesta |
+|---|---|
+| `GET /campus/map?categories=a,b` | Campus, bloques, edificios (con coordenadas y niveles) y puntos de interés de las categorías visibles. Sin `categories`, todas; con `categories=` vacío, ninguna |
+| `GET /campus/buildings/:buildingId?level=n1&categories=a,b` | Un edificio en un nivel (el más bajo si no se indica), sus niveles y sus puntos de interés |
+
+Ambas exigen sesión (`401` sin token). Una categoría desconocida da `400`; un edificio o nivel inexistente, `404`.
 
 ## Autorización (HU-46)
 
@@ -44,5 +55,5 @@ Todas en `tests/campus/CampusMap.test.ts`.
 ## Pendientes
 
 - **Cliente Android:** renderizado del mapa y medición del criterio 2 (RNF-06).
-- **Adaptador real de `MapProviderPort`** (proveedor de cartografía elegido) y capa HTTP.
+- **Coordenadas y niveles definitivos** del catálogo (ver decisión 2).
 - **HU-15 criterio 5** depende de este catálogo de espacios (ubicación de una convocatoria en el campus): debe consultar `CampusCatalogRepositoryPort`.

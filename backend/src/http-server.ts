@@ -84,6 +84,13 @@ import { ConsentPolicy } from './contexts/consent/domain/services/ConsentPolicy.
 import { MongoConsentRepository } from './contexts/consent/infrastructure/adapters/out/mongo/MongoConsentRepository.js';
 import { loadPublishedConsentVersions } from './contexts/consent/infrastructure/config/JsonPublishedConsentVersions.js';
 
+import { GetCampusMap } from './contexts/campus/application/GetCampusMap.js';
+import { SelectBuildingLevel } from './contexts/campus/application/SelectBuildingLevel.js';
+import { InMemoryCampusCatalogRepository } from './contexts/campus/infrastructure/adapters/out/memory/InMemoryCampusCatalogRepository.js';
+import { ClientRenderedMapProvider } from './contexts/campus/infrastructure/adapters/out/client/ClientRenderedMapProvider.js';
+import { loadCampusCatalog } from './contexts/campus/infrastructure/config/JsonCampusCatalogLoader.js';
+import { createCampusRouter } from './contexts/campus/infrastructure/http/campusRoutes.js';
+
 /**
  * Raiz de composicion del servidor HTTP. Deliberadamente separada de
  * `main.ts` (que arranca los planificadores de ingesta/avisos, un proceso de
@@ -295,8 +302,20 @@ async function bootstrap(): Promise<void> {
     (res) => sessionPrincipal(res).sessionId
   );
 
+  // Mapa del campus (HU-25): catalogo de solo lectura en `config/campus-catalog.json`;
+  // el dibujo lo hace la app con la cartografia que elija.
+  const campusCatalog = new InMemoryCampusCatalogRepository([loadCampusCatalog()]);
+  const mapProvider = new ClientRenderedMapProvider();
+  const campusRouter = createCampusRouter(
+    {
+      getMap: new GetCampusMap({ catalog: campusCatalog, mapProvider }),
+      selectLevel: new SelectBuildingLevel({ catalog: campusCatalog, mapProvider })
+    },
+    sessionGuard
+  );
+
   let shuttingDown = false;
-  const app = createHttpServer([authRouter, messagingRouter, feedRouter, profileRouter, chatbotRouter], {
+  const app = createHttpServer([authRouter, messagingRouter, feedRouter, profileRouter, chatbotRouter, campusRouter], {
     // Listo = no estamos apagando y MongoDB responde (con tope de 2 s para no colgar el sondeo).
     isReady: async () => {
       if (shuttingDown) return false;
