@@ -2,8 +2,8 @@
   "campusId": "bucaramanga",
   "name": "UPB Seccional Bucaramanga (campus Floridablanca)",
   "center": {
-    "latitude": 7.0372,
-    "longitude": -73.0685
+    "latitude": 7.0381,
+    "longitude": -73.0708
   },
   "blocks": [
     {
@@ -14,8 +14,8 @@
           "id": "edificio-a",
           "name": "Edificio A",
           "coordinates": {
-            "latitude": 7.037204,
-            "longitude": -73.068934
+            "latitude": 7.038245,
+            "longitude": -73.07143
           },
           "levels": [
             {
@@ -44,8 +44,8 @@
           "id": "edificio-b",
           "name": "Edificio B",
           "coordinates": {
-            "latitude": 7.036963,
-            "longitude": -73.069215
+            "latitude": 7.038098,
+            "longitude": -73.071618
           },
           "levels": [
             {
@@ -69,8 +69,8 @@
           "id": "edificio-c",
           "name": "Edificio C",
           "coordinates": {
-            "latitude": 7.036762,
-            "longitude": -73.069085
+            "latitude": 7.037989,
+            "longitude": -73.07141
           },
           "levels": [
             {
@@ -94,8 +94,8 @@
           "id": "edificio-j",
           "name": "Edificio J",
           "coordinates": {
-            "latitude": 7.03631,
-            "longitude": -73.069366
+            "latitude": 7.037684,
+            "longitude": -73.071563
           },
           "levels": [
             {
@@ -119,8 +119,8 @@
           "id": "templo",
           "name": "Templo Universitario María Reina de la Paz",
           "coordinates": {
-            "latitude": 7.037465,
-            "longitude": -73.069536
+            "latitude": 7.038403,
+            "longitude": -73.07176
           },
           "levels": [
             {
@@ -140,8 +140,8 @@
           "id": "edificio-d",
           "name": "Edificio D",
           "coordinates": {
-            "latitude": 7.036913,
-            "longitude": -73.068211
+            "latitude": 7.038055,
+            "longitude": -73.070875
           },
           "levels": [
             {
@@ -165,8 +165,8 @@
           "id": "edificio-e",
           "name": "Edificio E",
           "coordinates": {
-            "latitude": 7.036682,
-            "longitude": -73.067729
+            "latitude": 7.037947,
+            "longitude": -73.070621
           },
           "levels": [
             {
@@ -190,8 +190,8 @@
           "id": "edificio-f",
           "name": "Edificio F",
           "coordinates": {
-            "latitude": 7.036401,
-            "longitude": -73.06793
+            "latitude": 7.03774,
+            "longitude": -73.07075
           },
           "levels": [
             {
@@ -215,8 +215,8 @@
           "id": "edificio-g",
           "name": "Edificio G",
           "coordinates": {
-            "latitude": 7.03611,
-            "longitude": -73.06801
+            "latitude": 7.037585,
+            "longitude": -73.070812
           },
           "levels": [
             {
@@ -240,8 +240,8 @@
           "id": "edificio-h",
           "name": "Edificio H",
           "coordinates": {
-            "latitude": 7.036441,
-            "longitude": -73.067237
+            "latitude": 7.037782,
+            "longitude": -73.07033
           },
           "levels": [
             {
@@ -271,8 +271,8 @@
           "id": "edificio-i",
           "name": "Edificio I",
           "coordinates": {
-            "latitude": 7.037083,
-            "longitude": -73.066203
+            "latitude": 7.038182,
+            "longitude": -73.06968
           },
           "levels": [
             {
@@ -296,8 +296,8 @@
           "id": "edificio-k",
           "name": "Edificio K",
           "coordinates": {
-            "latitude": 7.038017,
-            "longitude": -73.066253
+            "latitude": 7.038694,
+            "longitude": -73.069657
           },
           "levels": [
             {
@@ -326,8 +326,8 @@
           "id": "edificio-l",
           "name": "Edificio L",
           "coordinates": {
-            "latitude": 7.036883,
-            "longitude": -73.0654
+            "latitude": 7.038037,
+            "longitude": -73.069175
           },
           "levels": [
             {
@@ -356,8 +356,8 @@
       "name": "Cafetería Edificio A",
       "category": "cafeteria",
       "coordinates": {
-        "latitude": 7.037234,
-        "longitude": -73.068904
+        "latitude": 7.038275,
+        "longitude": -73.0714
       },
       "buildingId": "edificio-a",
       "levelId": "n0"
@@ -367,8 +367,8 @@
       "name": "Cafetería Edificio K",
       "category": "cafeteria",
       "coordinates": {
-        "latitude": 7.037987,
-        "longitude": -73.066293
+        "latitude": 7.038664,
+        "longitude": -73.069697
       },
       "buildingId": "edificio-k",
       "levelId": "n0"
@@ -378,8 +378,8 @@
       "name": "Biblioteca",
       "category": "biblioteca",
       "coordinates": {
-        "latitude": 7.038047,
-        "longitude": -73.066213
+        "latitude": 7.038724,
+        "longitude": -73.069617
       },
       "buildingId": "edificio-k",
       "levelId": "n1"
@@ -389,8 +389,8 @@
       "name": "Bienestar Universitario",
       "category": "bienestar",
       "coordinates": {
-        "latitude": 7.036913,
-        "longitude": -73.068211
+        "latitude": 7.038055,
+        "longitude": -73.070875
       },
       "buildingId": "edificio-d",
       "levelId": "n0"
@@ -400,8 +400,8 @@
       "name": "Coordinación de Ingeniería de Sistemas",
       "category": "coordinacion",
       "coordinates": {
-        "latitude": 7.037204,
-        "longitude": -73.068934
+        "latitude": 7.038245,
+        "longitude": -73.07143
       },
       "buildingId": "edificio-a",
       "levelId": "n2"
@@ -411,8 +411,8 @@
       "name": "Coordinación de Ingeniería Industrial",
       "category": "coordinacion",
       "coordinates": {
-        "latitude": 7.037184,
-        "longitude": -73.068954
+        "latitude": 7.038225,
+        "longitude": -73.07145
       },
       "buildingId": "edificio-a",
       "levelId": "n3"
@@ -422,8 +422,8 @@
       "name": "Admisiones y Registro",
       "category": "punto-de-atencion",
       "coordinates": {
-        "latitude": 7.037224,
-        "longitude": -73.068954
+        "latitude": 7.038265,
+        "longitude": -73.07145
       },
       "buildingId": "edificio-a",
       "levelId": "n1"
@@ -433,8 +433,8 @@
       "name": "Baños Edificio A, planta baja",
       "category": "servicio-sanitario",
       "coordinates": {
-        "latitude": 7.037174,
-        "longitude": -73.068904
+        "latitude": 7.038215,
+        "longitude": -73.0714
       },
       "buildingId": "edificio-a",
       "levelId": "n0"
@@ -444,8 +444,8 @@
       "name": "Baños Edificio A, nivel 2",
       "category": "servicio-sanitario",
       "coordinates": {
-        "latitude": 7.037174,
-        "longitude": -73.068904
+        "latitude": 7.038215,
+        "longitude": -73.0714
       },
       "buildingId": "edificio-a",
       "levelId": "n2"
@@ -455,8 +455,8 @@
       "name": "Baños Edificio K",
       "category": "servicio-sanitario",
       "coordinates": {
-        "latitude": 7.038017,
-        "longitude": -73.066193
+        "latitude": 7.038694,
+        "longitude": -73.069597
       },
       "buildingId": "edificio-k",
       "levelId": "n0"
@@ -466,19 +466,19 @@
       "name": "Parqueadero norte",
       "category": "parqueadero",
       "coordinates": {
-        "latitude": 7.039573,
-        "longitude": -73.071223
+        "latitude": 7.039793,
+        "longitude": -73.072691
       },
       "buildingId": null,
       "levelId": null
     },
     {
       "id": "poi-parqueadero-occidental",
-      "name": "Parqueadero occidental",
+      "name": "Parqueadero de varios pisos (occidente)",
       "category": "parqueadero",
       "coordinates": {
-        "latitude": 7.0386,
-        "longitude": -73.071625
+        "latitude": 7.038202,
+        "longitude": -73.07248
       },
       "buildingId": null,
       "levelId": null
@@ -488,19 +488,19 @@
       "name": "Parqueadero junto a las canchas",
       "category": "parqueadero",
       "coordinates": {
-        "latitude": 7.037515,
-        "longitude": -73.070741
+        "latitude": 7.03914,
+        "longitude": -73.07311
       },
       "buildingId": null,
       "levelId": null
     },
     {
       "id": "poi-parqueadero-oriental",
-      "name": "Parqueadero oriental",
+      "name": "Parqueadero de varios pisos (oriente)",
       "category": "parqueadero",
       "coordinates": {
-        "latitude": 7.037505,
-        "longitude": -73.066504
+        "latitude": 7.038458,
+        "longitude": -73.069882
       },
       "buildingId": null,
       "levelId": null

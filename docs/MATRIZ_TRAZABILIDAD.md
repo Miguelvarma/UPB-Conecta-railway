@@ -62,7 +62,7 @@ Aplica a todo el producto: el cliente Android sigue sobre datos de ejemplo (`Moc
 
 | RF | Estado | Notas |
 |---|---|---|
-| RF-37 | P | Catálogo con los edificios A a L de Floridablanca (coordenadas estimadas) expuesto en `GET /campus/map` y `GET /campus/buildings/:id`; falta medir el rendimiento móvil |
+| RF-37 | P | Catálogo con los edificios A a L de Floridablanca (coordenadas reales) expuesto en `GET /campus/map` y `GET /campus/buildings/:id`; falta medir el rendimiento móvil |
 | RF-38, RF-39, RF-40 | N | Sin directorio buscable, ubicación del usuario ni trazado de ruta |
 | RF-41 | B | Puntos de interés categorizados con filtro |
 | RF-42 | P | La ingesta conserva el lugar declarado; no hay acceso directo desde el detalle |

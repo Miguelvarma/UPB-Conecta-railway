@@ -23,7 +23,7 @@ Se entregan el catálogo de espacios, los casos de uso que el módulo de mapa in
 ## Decisiones
 
 1. **El catálogo es del dominio, no una capa del proveedor.** `MapProviderPort.render(scene)` recibe una escena con tipos del dominio (centro, marcadores, foco en un nivel) y no devuelve datos. Sustituir el proveedor implica escribir otro adaptador de ese puerto; ni el catálogo ni los casos de uso cambian (criterio 5).
-2. **Datos semilla como configuración.** `config/campus-catalog.json` se valida al cargarse. Los edificios A a L, el templo y los parqueaderos son los del campus de Floridablanca tal como aparecen en la cartografía abierta, con coordenadas **estimadas** (error de algunos metros). **El número de niveles de cada edificio y la ubicación de cafeterías, biblioteca, coordinaciones y baños son provisionales**: deben confirmarse con la Universidad.
+2. **Datos semilla como configuración.** `config/campus-catalog.json` se valida al cargarse. Los edificios A a L, el templo y los parqueaderos son los del campus de Floridablanca con las coordenadas del centro de cada contorno en la cartografía abierta (exportación de octubre de 2026). **El número de niveles de cada edificio y la ubicación de cafeterías, biblioteca, coordinaciones y baños son provisionales**: deben confirmarse con la Universidad.
 3. **Puntos de interés en un edificio llevan nivel; al aire libre no** (por ejemplo, parqueaderos). La validación lo exige.
 4. **Sin `MongoCampusCatalogRepository`.** El catálogo se lee del archivo de configuración; una colección solo haría falta si se edita en línea (historia futura).
 
