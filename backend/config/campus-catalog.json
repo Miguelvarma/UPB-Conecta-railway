@@ -1,75 +1,509 @@
 {
   "campusId": "bucaramanga",
-  "name": "UPB Seccional Bucaramanga",
-  "center": { "latitude": 7.0092, "longitude": -73.0694 },
+  "name": "UPB Seccional Bucaramanga (campus Floridablanca)",
+  "center": {
+    "latitude": 7.0372,
+    "longitude": -73.0685
+  },
   "blocks": [
     {
-      "id": "bloque-a",
-      "name": "Bloque A",
+      "id": "zona-central",
+      "name": "Zona central",
       "buildings": [
         {
-          "id": "edificio-aulas-a",
-          "name": "Edificio de Aulas A",
-          "coordinates": { "latitude": 7.0096, "longitude": -73.0698 },
+          "id": "edificio-a",
+          "name": "Edificio A",
+          "coordinates": {
+            "latitude": 7.037204,
+            "longitude": -73.068934
+          },
           "levels": [
-            { "id": "n0", "number": 0, "name": "Planta baja" },
-            { "id": "n1", "number": 1, "name": "Nivel 1" },
-            { "id": "n2", "number": 2, "name": "Nivel 2" },
-            { "id": "n3", "number": 3, "name": "Nivel 3" }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "bloque-b",
-      "name": "Bloque B",
-      "buildings": [
-        {
-          "id": "edificio-biblioteca",
-          "name": "Biblioteca",
-          "coordinates": { "latitude": 7.009, "longitude": -73.069 },
-          "levels": [
-            { "id": "n0", "number": 0, "name": "Planta baja" },
-            { "id": "n1", "number": 1, "name": "Nivel 1" },
-            { "id": "n2", "number": 2, "name": "Nivel 2" }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "bloque-c",
-      "name": "Bloque C",
-      "buildings": [
-        {
-          "id": "edificio-bienestar",
-          "name": "Bienestar Universitario",
-          "coordinates": { "latitude": 7.0086, "longitude": -73.07 },
-          "levels": [
-            { "id": "n0", "number": 0, "name": "Planta baja" },
-            { "id": "n1", "number": 1, "name": "Nivel 1" }
+            {
+              "id": "n0",
+              "number": 0,
+              "name": "Planta baja"
+            },
+            {
+              "id": "n1",
+              "number": 1,
+              "name": "Nivel 1"
+            },
+            {
+              "id": "n2",
+              "number": 2,
+              "name": "Nivel 2"
+            },
+            {
+              "id": "n3",
+              "number": 3,
+              "name": "Nivel 3"
+            }
           ]
         },
         {
-          "id": "edificio-cafeteria",
-          "name": "Cafetería Central",
-          "coordinates": { "latitude": 7.0093, "longitude": -73.0688 },
-          "levels": [{ "id": "n0", "number": 0, "name": "Planta baja" }]
+          "id": "edificio-b",
+          "name": "Edificio B",
+          "coordinates": {
+            "latitude": 7.036963,
+            "longitude": -73.069215
+          },
+          "levels": [
+            {
+              "id": "n0",
+              "number": 0,
+              "name": "Planta baja"
+            },
+            {
+              "id": "n1",
+              "number": 1,
+              "name": "Nivel 1"
+            },
+            {
+              "id": "n2",
+              "number": 2,
+              "name": "Nivel 2"
+            }
+          ]
+        },
+        {
+          "id": "edificio-c",
+          "name": "Edificio C",
+          "coordinates": {
+            "latitude": 7.036762,
+            "longitude": -73.069085
+          },
+          "levels": [
+            {
+              "id": "n0",
+              "number": 0,
+              "name": "Planta baja"
+            },
+            {
+              "id": "n1",
+              "number": 1,
+              "name": "Nivel 1"
+            },
+            {
+              "id": "n2",
+              "number": 2,
+              "name": "Nivel 2"
+            }
+          ]
+        },
+        {
+          "id": "edificio-j",
+          "name": "Edificio J",
+          "coordinates": {
+            "latitude": 7.03631,
+            "longitude": -73.069366
+          },
+          "levels": [
+            {
+              "id": "n0",
+              "number": 0,
+              "name": "Planta baja"
+            },
+            {
+              "id": "n1",
+              "number": 1,
+              "name": "Nivel 1"
+            },
+            {
+              "id": "n2",
+              "number": 2,
+              "name": "Nivel 2"
+            }
+          ]
+        },
+        {
+          "id": "templo",
+          "name": "Templo Universitario María Reina de la Paz",
+          "coordinates": {
+            "latitude": 7.037465,
+            "longitude": -73.069536
+          },
+          "levels": [
+            {
+              "id": "n0",
+              "number": 0,
+              "name": "Planta baja"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "zona-sur",
+      "name": "Zona sur",
+      "buildings": [
+        {
+          "id": "edificio-d",
+          "name": "Edificio D",
+          "coordinates": {
+            "latitude": 7.036913,
+            "longitude": -73.068211
+          },
+          "levels": [
+            {
+              "id": "n0",
+              "number": 0,
+              "name": "Planta baja"
+            },
+            {
+              "id": "n1",
+              "number": 1,
+              "name": "Nivel 1"
+            },
+            {
+              "id": "n2",
+              "number": 2,
+              "name": "Nivel 2"
+            }
+          ]
+        },
+        {
+          "id": "edificio-e",
+          "name": "Edificio E",
+          "coordinates": {
+            "latitude": 7.036682,
+            "longitude": -73.067729
+          },
+          "levels": [
+            {
+              "id": "n0",
+              "number": 0,
+              "name": "Planta baja"
+            },
+            {
+              "id": "n1",
+              "number": 1,
+              "name": "Nivel 1"
+            },
+            {
+              "id": "n2",
+              "number": 2,
+              "name": "Nivel 2"
+            }
+          ]
+        },
+        {
+          "id": "edificio-f",
+          "name": "Edificio F",
+          "coordinates": {
+            "latitude": 7.036401,
+            "longitude": -73.06793
+          },
+          "levels": [
+            {
+              "id": "n0",
+              "number": 0,
+              "name": "Planta baja"
+            },
+            {
+              "id": "n1",
+              "number": 1,
+              "name": "Nivel 1"
+            },
+            {
+              "id": "n2",
+              "number": 2,
+              "name": "Nivel 2"
+            }
+          ]
+        },
+        {
+          "id": "edificio-g",
+          "name": "Edificio G",
+          "coordinates": {
+            "latitude": 7.03611,
+            "longitude": -73.06801
+          },
+          "levels": [
+            {
+              "id": "n0",
+              "number": 0,
+              "name": "Planta baja"
+            },
+            {
+              "id": "n1",
+              "number": 1,
+              "name": "Nivel 1"
+            },
+            {
+              "id": "n2",
+              "number": 2,
+              "name": "Nivel 2"
+            }
+          ]
+        },
+        {
+          "id": "edificio-h",
+          "name": "Edificio H",
+          "coordinates": {
+            "latitude": 7.036441,
+            "longitude": -73.067237
+          },
+          "levels": [
+            {
+              "id": "n0",
+              "number": 0,
+              "name": "Planta baja"
+            },
+            {
+              "id": "n1",
+              "number": 1,
+              "name": "Nivel 1"
+            },
+            {
+              "id": "n2",
+              "number": 2,
+              "name": "Nivel 2"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "zona-oriental",
+      "name": "Zona oriental",
+      "buildings": [
+        {
+          "id": "edificio-i",
+          "name": "Edificio I",
+          "coordinates": {
+            "latitude": 7.037083,
+            "longitude": -73.066203
+          },
+          "levels": [
+            {
+              "id": "n0",
+              "number": 0,
+              "name": "Planta baja"
+            },
+            {
+              "id": "n1",
+              "number": 1,
+              "name": "Nivel 1"
+            },
+            {
+              "id": "n2",
+              "number": 2,
+              "name": "Nivel 2"
+            }
+          ]
+        },
+        {
+          "id": "edificio-k",
+          "name": "Edificio K",
+          "coordinates": {
+            "latitude": 7.038017,
+            "longitude": -73.066253
+          },
+          "levels": [
+            {
+              "id": "n0",
+              "number": 0,
+              "name": "Planta baja"
+            },
+            {
+              "id": "n1",
+              "number": 1,
+              "name": "Nivel 1"
+            },
+            {
+              "id": "n2",
+              "number": 2,
+              "name": "Nivel 2"
+            },
+            {
+              "id": "n3",
+              "number": 3,
+              "name": "Nivel 3"
+            }
+          ]
+        },
+        {
+          "id": "edificio-l",
+          "name": "Edificio L",
+          "coordinates": {
+            "latitude": 7.036883,
+            "longitude": -73.0654
+          },
+          "levels": [
+            {
+              "id": "n0",
+              "number": 0,
+              "name": "Planta baja"
+            },
+            {
+              "id": "n1",
+              "number": 1,
+              "name": "Nivel 1"
+            },
+            {
+              "id": "n2",
+              "number": 2,
+              "name": "Nivel 2"
+            }
+          ]
         }
       ]
     }
   ],
   "pointsOfInterest": [
-    { "id": "poi-cafeteria-central", "name": "Cafetería Central", "category": "cafeteria", "coordinates": { "latitude": 7.0093, "longitude": -73.0688 }, "buildingId": "edificio-cafeteria", "levelId": "n0" },
-    { "id": "poi-cafeteria-aulas", "name": "Cafetería Aulas A", "category": "cafeteria", "coordinates": { "latitude": 7.00962, "longitude": -73.06985 }, "buildingId": "edificio-aulas-a", "levelId": "n0" },
-    { "id": "poi-biblioteca", "name": "Biblioteca", "category": "biblioteca", "coordinates": { "latitude": 7.009, "longitude": -73.069 }, "buildingId": "edificio-biblioteca", "levelId": "n1" },
-    { "id": "poi-bienestar", "name": "Bienestar Universitario", "category": "bienestar", "coordinates": { "latitude": 7.0086, "longitude": -73.07 }, "buildingId": "edificio-bienestar", "levelId": "n0" },
-    { "id": "poi-coord-sistemas", "name": "Coordinación de Ingeniería de Sistemas", "category": "coordinacion", "coordinates": { "latitude": 7.0096, "longitude": -73.0698 }, "buildingId": "edificio-aulas-a", "levelId": "n2" },
-    { "id": "poi-coord-industrial", "name": "Coordinación de Ingeniería Industrial", "category": "coordinacion", "coordinates": { "latitude": 7.00958, "longitude": -73.06975 }, "buildingId": "edificio-aulas-a", "levelId": "n3" },
-    { "id": "poi-admisiones", "name": "Admisiones y Registro", "category": "punto-de-atencion", "coordinates": { "latitude": 7.00965, "longitude": -73.06975 }, "buildingId": "edificio-aulas-a", "levelId": "n1" },
-    { "id": "poi-bano-a0", "name": "Baños Aulas A, planta baja", "category": "servicio-sanitario", "coordinates": { "latitude": 7.00957, "longitude": -73.0699 }, "buildingId": "edificio-aulas-a", "levelId": "n0" },
-    { "id": "poi-bano-a2", "name": "Baños Aulas A, nivel 2", "category": "servicio-sanitario", "coordinates": { "latitude": 7.00957, "longitude": -73.0699 }, "buildingId": "edificio-aulas-a", "levelId": "n2" },
-    { "id": "poi-bano-biblioteca", "name": "Baños Biblioteca", "category": "servicio-sanitario", "coordinates": { "latitude": 7.00895, "longitude": -73.06905 }, "buildingId": "edificio-biblioteca", "levelId": "n0" },
-    { "id": "poi-parqueadero-principal", "name": "Parqueadero principal", "category": "parqueadero", "coordinates": { "latitude": 7.01, "longitude": -73.0685 }, "buildingId": null, "levelId": null },
-    { "id": "poi-parqueadero-motos", "name": "Parqueadero de motos", "category": "parqueadero", "coordinates": { "latitude": 7.0084, "longitude": -73.0692 }, "buildingId": null, "levelId": null }
+    {
+      "id": "poi-cafeteria-a",
+      "name": "Cafetería Edificio A",
+      "category": "cafeteria",
+      "coordinates": {
+        "latitude": 7.037234,
+        "longitude": -73.068904
+      },
+      "buildingId": "edificio-a",
+      "levelId": "n0"
+    },
+    {
+      "id": "poi-cafeteria-k",
+      "name": "Cafetería Edificio K",
+      "category": "cafeteria",
+      "coordinates": {
+        "latitude": 7.037987,
+        "longitude": -73.066293
+      },
+      "buildingId": "edificio-k",
+      "levelId": "n0"
+    },
+    {
+      "id": "poi-biblioteca",
+      "name": "Biblioteca",
+      "category": "biblioteca",
+      "coordinates": {
+        "latitude": 7.038047,
+        "longitude": -73.066213
+      },
+      "buildingId": "edificio-k",
+      "levelId": "n1"
+    },
+    {
+      "id": "poi-bienestar",
+      "name": "Bienestar Universitario",
+      "category": "bienestar",
+      "coordinates": {
+        "latitude": 7.036913,
+        "longitude": -73.068211
+      },
+      "buildingId": "edificio-d",
+      "levelId": "n0"
+    },
+    {
+      "id": "poi-coord-sistemas",
+      "name": "Coordinación de Ingeniería de Sistemas",
+      "category": "coordinacion",
+      "coordinates": {
+        "latitude": 7.037204,
+        "longitude": -73.068934
+      },
+      "buildingId": "edificio-a",
+      "levelId": "n2"
+    },
+    {
+      "id": "poi-coord-industrial",
+      "name": "Coordinación de Ingeniería Industrial",
+      "category": "coordinacion",
+      "coordinates": {
+        "latitude": 7.037184,
+        "longitude": -73.068954
+      },
+      "buildingId": "edificio-a",
+      "levelId": "n3"
+    },
+    {
+      "id": "poi-admisiones",
+      "name": "Admisiones y Registro",
+      "category": "punto-de-atencion",
+      "coordinates": {
+        "latitude": 7.037224,
+        "longitude": -73.068954
+      },
+      "buildingId": "edificio-a",
+      "levelId": "n1"
+    },
+    {
+      "id": "poi-bano-a0",
+      "name": "Baños Edificio A, planta baja",
+      "category": "servicio-sanitario",
+      "coordinates": {
+        "latitude": 7.037174,
+        "longitude": -73.068904
+      },
+      "buildingId": "edificio-a",
+      "levelId": "n0"
+    },
+    {
+      "id": "poi-bano-a2",
+      "name": "Baños Edificio A, nivel 2",
+      "category": "servicio-sanitario",
+      "coordinates": {
+        "latitude": 7.037174,
+        "longitude": -73.068904
+      },
+      "buildingId": "edificio-a",
+      "levelId": "n2"
+    },
+    {
+      "id": "poi-bano-k",
+      "name": "Baños Edificio K",
+      "category": "servicio-sanitario",
+      "coordinates": {
+        "latitude": 7.038017,
+        "longitude": -73.066193
+      },
+      "buildingId": "edificio-k",
+      "levelId": "n0"
+    },
+    {
+      "id": "poi-parqueadero-norte",
+      "name": "Parqueadero norte",
+      "category": "parqueadero",
+      "coordinates": {
+        "latitude": 7.039573,
+        "longitude": -73.071223
+      },
+      "buildingId": null,
+      "levelId": null
+    },
+    {
+      "id": "poi-parqueadero-occidental",
+      "name": "Parqueadero occidental",
+      "category": "parqueadero",
+      "coordinates": {
+        "latitude": 7.0386,
+        "longitude": -73.071625
+      },
+      "buildingId": null,
+      "levelId": null
+    },
+    {
+      "id": "poi-parqueadero-sur",
+      "name": "Parqueadero junto a las canchas",
+      "category": "parqueadero",
+      "coordinates": {
+        "latitude": 7.037515,
+        "longitude": -73.070741
+      },
+      "buildingId": null,
+      "levelId": null
+    },
+    {
+      "id": "poi-parqueadero-oriental",
+      "name": "Parqueadero oriental",
+      "category": "parqueadero",
+      "coordinates": {
+        "latitude": 7.037505,
+        "longitude": -73.066504
+      },
+      "buildingId": null,
+      "levelId": null
+    }
   ]
 }

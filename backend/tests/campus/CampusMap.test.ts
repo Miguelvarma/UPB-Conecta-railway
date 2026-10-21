@@ -102,8 +102,8 @@ describe('HU-25 — mapa interactivo del campus (RF-37, RF-41, RNF-06, RNF-42)',
   describe('criterio 4 — alternar entre niveles de un edificio', () => {
     it('un edificio con varios niveles permite pasar de uno a otro y cada nivel muestra sus puntos', async () => {
       const h = build();
-      const nivel0 = must(await h.selectLevel.execute({ campusId: 'bucaramanga', buildingId: 'edificio-aulas-a', levelId: 'n0' }));
-      const nivel2 = must(await h.selectLevel.execute({ campusId: 'bucaramanga', buildingId: 'edificio-aulas-a', levelId: 'n2' }));
+      const nivel0 = must(await h.selectLevel.execute({ campusId: 'bucaramanga', buildingId: 'edificio-a', levelId: 'n0' }));
+      const nivel2 = must(await h.selectLevel.execute({ campusId: 'bucaramanga', buildingId: 'edificio-a', levelId: 'n2' }));
 
       expect(nivel0.canSwitchLevel).toBe(true);
       expect(nivel0.levels.map((l) => l.id)).toEqual(['n0', 'n1', 'n2', 'n3']);
@@ -111,19 +111,19 @@ describe('HU-25 — mapa interactivo del campus (RF-37, RF-41, RNF-06, RNF-42)',
       expect(nivel0.pointsOfInterest.every((p) => p.levelId === 'n0')).toBe(true);
       expect(nivel2.pointsOfInterest.every((p) => p.levelId === 'n2')).toBe(true);
       expect(nivel0.pointsOfInterest.map((p) => p.id)).not.toEqual(nivel2.pointsOfInterest.map((p) => p.id));
-      expect(h.mapProvider.rendered.at(-1)?.focus).toEqual({ buildingId: 'edificio-aulas-a', levelId: 'n2' });
+      expect(h.mapProvider.rendered.at(-1)?.focus).toEqual({ buildingId: 'edificio-a', levelId: 'n2' });
     });
 
     it('sin nivel indicado abre el mas bajo y respeta las categorias visibles', async () => {
       const result = must(
-        await build().selectLevel.execute({ campusId: 'bucaramanga', buildingId: 'edificio-aulas-a', visibleCategories: ['servicio-sanitario'] })
+        await build().selectLevel.execute({ campusId: 'bucaramanga', buildingId: 'edificio-a', visibleCategories: ['servicio-sanitario'] })
       );
       expect(result.level.id).toBe('n0');
       expect(result.pointsOfInterest.every((p) => p.category === PoiCategory.RESTROOM)).toBe(true);
     });
 
     it('un edificio de un solo nivel no ofrece alternar', async () => {
-      const result = must(await build().selectLevel.execute({ campusId: 'bucaramanga', buildingId: 'edificio-cafeteria' }));
+      const result = must(await build().selectLevel.execute({ campusId: 'bucaramanga', buildingId: 'templo' }));
       expect(result.canSwitchLevel).toBe(false);
     });
 
@@ -131,10 +131,10 @@ describe('HU-25 — mapa interactivo del campus (RF-37, RF-41, RNF-06, RNF-42)',
       const h = build();
       expect(await h.selectLevel.execute({ campusId: 'x', buildingId: 'a' })).toMatchObject({ error: CampusFailureKind.CAMPUS_NOT_FOUND });
       expect(await h.selectLevel.execute({ campusId: 'bucaramanga', buildingId: 'a' })).toMatchObject({ error: CampusFailureKind.BUILDING_NOT_FOUND });
-      expect(await h.selectLevel.execute({ campusId: 'bucaramanga', buildingId: 'edificio-aulas-a', levelId: 'n9' })).toMatchObject({
+      expect(await h.selectLevel.execute({ campusId: 'bucaramanga', buildingId: 'edificio-a', levelId: 'n9' })).toMatchObject({
         error: CampusFailureKind.LEVEL_NOT_FOUND
       });
-      expect(await h.selectLevel.execute({ campusId: 'bucaramanga', buildingId: 'edificio-aulas-a', visibleCategories: ['x'] })).toMatchObject({
+      expect(await h.selectLevel.execute({ campusId: 'bucaramanga', buildingId: 'edificio-a', visibleCategories: ['x'] })).toMatchObject({
         error: CampusFailureKind.UNKNOWN_CATEGORY
       });
     });

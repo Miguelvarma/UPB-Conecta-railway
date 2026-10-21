@@ -12,7 +12,7 @@ Estado de cada requerimiento del SRS (RF-01 a RF-78 y RNF-01 a RNF-46) frente al
 | **N** | No cumple: sin código |
 | **S** | Sin evidencia: no se midió o no es verificable todavía |
 
-Aplica a todo el producto: el cliente Android sigue sobre datos de ejemplo (`MockData.kt`) y no consume la API; el buzón institucional, el directorio institucional, el clasificador, el moderador, el chatbot (modelo de lenguaje) y el push son dobles o proveedores simples hasta que existan los servicios reales (T-01). La API HTTP expone hoy: `/auth/*`, `/messaging/*`, `/feed`, `/profile` y `/chatbot/ask`.
+Aplica a todo el producto: el cliente Android sigue sobre datos de ejemplo (`MockData.kt`) y no consume la API; el buzón institucional, el directorio institucional, el clasificador, el moderador, el chatbot (modelo de lenguaje) y el push son dobles o proveedores simples hasta que existan los servicios reales (T-01). La API HTTP expone hoy: `/auth/*`, `/messaging/*`, `/feed`, `/profile`, `/chatbot/ask` y `/campus/*`.
 
 ## Requerimientos funcionales
 
@@ -62,7 +62,7 @@ Aplica a todo el producto: el cliente Android sigue sobre datos de ejemplo (`Moc
 
 | RF | Estado | Notas |
 |---|---|---|
-| RF-37 | P | Catálogo, bloques y niveles detrás de `MapProviderPort`; sin render ni rendimiento móvil |
+| RF-37 | P | Catálogo con los edificios A a L de Floridablanca (coordenadas estimadas) expuesto en `GET /campus/map` y `GET /campus/buildings/:id`; falta medir el rendimiento móvil |
 | RF-38, RF-39, RF-40 | N | Sin directorio buscable, ubicación del usuario ni trazado de ruta |
 | RF-41 | B | Puntos de interés categorizados con filtro |
 | RF-42 | P | La ingesta conserva el lugar declarado; no hay acceso directo desde el detalle |
